@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+__pycache__/
+*.pyc
+*.pyo
+venv/
+backend/lattice.db
+backend/uploads/
+backend/thumbnails/
+.DS_Store

@@ -1,0 +1,41 @@
+---
+description: Project-wide conventions and architecture for the Lattice web app
+alwaysApply: true
+---
+
+# Lattice Project Rules
+
+## Architecture
+
+- **Backend**: Flask (Python) in `backend/`, SQLite via Flask-SQLAlchemy, Flask-Login sessions
+- **Frontend**: React + Vite in `frontend/`, Tailwind CSS v4 (via `@tailwindcss/vite`), Lucide icons
+- API proxy: Vite proxies `/api` to `http://localhost:5001`
+
+## Backend Conventions
+
+- All routes live in Flask blueprints under `backend/app/` (auth.py, documents.py, canvas.py)
+- Every database query must be scoped to `current_user.id` to enforce per-user isolation
+- Return JSON responses with appropriate HTTP status codes (201 for create, 200 for read/update, 404 for not found)
+- Use `werkzeug.security` for password hashing, never store plaintext passwords
+- File uploads go to `backend/uploads/`, thumbnails to `backend/thumbnails/`
+
+## Frontend Conventions
+
+- Components in `frontend/src/components/`, pages in `frontend/src/pages/`
+- Use functional components with hooks, no class components
+- Auth state managed via `AuthContext`; use `useAuth()` hook
+- API calls go through the shared Axios instance at `frontend/src/api/axios.js`
+- Tailwind utility classes only -- no custom CSS unless absolutely necessary
+- Use `lucide-react` for all icons
+
+## Canvas Interactions
+
+- Document nodes are absolutely positioned inside a relative canvas container
+- Drag via native pointer events (onPointerDown/Move/Up), no external DnD library
+- Connections rendered as SVG `<line>` elements in an overlay that matches canvas dimensions
+- Persist positions to backend on pointer up; optimistic local updates during drag
+
+## Running the App
+
+- Backend: `cd backend && source venv/bin/activate && python run.py` (port 5001)
+- Frontend: `cd frontend && npm run dev` (port 5173, proxies /api to backend)
