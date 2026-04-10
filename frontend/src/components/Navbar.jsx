@@ -1,13 +1,37 @@
-import { LogOut, Link as LinkIcon, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { LogOut, Link as LinkIcon, Plus, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function Navbar({ connectMode, onToggleConnect, onUpload }) {
+export default function Navbar({ connectMode, onToggleConnect, onUpload, onSearch }) {
   const { user, logout } = useAuth();
+  const [query, setQuery] = useState('');
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && query.trim()) {
+      onSearch(query.trim());
+    }
+    if (e.key === 'Escape') {
+      setQuery('');
+      onSearch('');
+    }
+  };
 
   return (
     <nav className="h-14 bg-surface-800 border-b border-surface-600 flex items-center justify-between px-5 shrink-0 z-50">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         <h1 className="text-lg font-bold tracking-tight text-white">Lattice</h1>
+
+        <div className="relative">
+          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+          <input
+            type="text"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Search documents…"
+            className="w-56 pl-8 pr-3 py-1.5 text-sm rounded-lg bg-surface-700 border border-surface-500 text-white placeholder-gray-500 outline-none focus:border-gem-500 focus:ring-2 focus:ring-gem-500/20 transition"
+          />
+        </div>
       </div>
 
       <div className="flex items-center gap-2">

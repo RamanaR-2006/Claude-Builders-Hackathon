@@ -1,7 +1,11 @@
 import { X, Download, FileText, Music } from 'lucide-react';
 
-export default function DocumentViewer({ doc, onClose }) {
-  const fileUrl = `/api/documents/${doc.id}/file`;
+export default function DocumentViewer({ doc, searchQuery, searchPage, onClose }) {
+  let fileUrl = `/api/documents/${doc.id}/file`;
+
+  // For PDFs opened from search, jump to the matching page
+  const pdfFragment = doc.file_type === 'pdf' && searchPage ? `#page=${searchPage}` : '';
+  const pdfSrc = fileUrl + pdfFragment;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -11,7 +15,14 @@ export default function DocumentViewer({ doc, onClose }) {
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-surface-600 shrink-0">
-          <h2 className="text-sm font-semibold text-white truncate mr-4">{doc.original_name}</h2>
+          <div className="flex items-center gap-3 min-w-0 mr-4">
+            <h2 className="text-sm font-semibold text-white truncate">{doc.original_name}</h2>
+            {searchPage && (
+              <span className="shrink-0 text-[10px] font-medium text-gem-400 bg-gem-500/10 border border-gem-500/20 rounded-full px-2.5 py-0.5">
+                Match on page {searchPage}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <a
               href={fileUrl}
@@ -34,7 +45,7 @@ export default function DocumentViewer({ doc, onClose }) {
         <div className="flex-1 overflow-auto min-h-0">
           {doc.file_type === 'pdf' && (
             <iframe
-              src={fileUrl}
+              src={pdfSrc}
               className="w-full h-full min-h-[70vh]"
               title={doc.original_name}
             />

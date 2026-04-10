@@ -1,8 +1,9 @@
 import os
+import re
 import subprocess
 import uuid
 
-from flask import Blueprint, current_app, request, send_file
+from flask import Blueprint, current_app, jsonify, request, send_file
 from flask_login import current_user, login_required
 
 from .models import Connection, Document, db
@@ -183,3 +184,70 @@ def serve_thumbnail(doc_id):
         return {"error": "Thumbnail file missing"}, 404
 
     return send_file(thumb_path, mimetype="image/png")
+
+
+def _extract_snippet(page_text, query, context_chars=60):
+    """Return a snippet of text surrounding the first occurrence of query."""
+    lower_text = page_text.lower()
+    idx = lower_text.find(query.lower())
+    if idx == -1:
+        return None
+    start = max(0, idx - context_chars)
+    end = min(len(page_text), idx + len(query) + context_chars)
+    snippet = page_text[start:end].replace("\n", " ").strip()
+    if start > 0:
+        snippet = "…" + snippet
+    if end < len(page_text):
+        snippet = snippet + "…"
+    return snippet
+
+
+@documents_bp.route("/search", methods=["GET"])
+@login_required
+def search_documents():
+    query = (request.args.get("q") or "").strip()
+    if not query:
+        return {"error": "Query parameter 'q' is required"}, 400
+
+    docs = Document.query.filter_by(user_id=current_user.id).all()
+    upload_dir = current_app.config["UPLOAD_FOLDER"]
+    results = []
+
+    for doc in docs:
+        matches = []
+
+        if doc.file_type == "pdf":
+            filepath = os.path.join(upload_dir, doc.filename)
+            if os.path.exists(filepath):
+                try:
+                    import fitz
+
+                    pdf = fitz.open(filepath)
+                    for page_num in range(len(pdf)):
+                        page = pdf[page_num]
+                        hits = page.search_for(query)
+                        if hits:
+                            text = page.get_text("text")
+                            snippet = _extract_snippet(text, query)
+                            matches.append({
+                                "page": page_num + 1,
+                                "snippet": snippet,
+                            })
+                    pdf.close()
+                except Exception:
+                    pass
+
+        # Always check filename for all file types
+        if not matches and query.lower() in doc.original_name.lower():
+            matches.append({"page": None, "snippet": None})
+
+        if matches:
+            results.append({
+                "doc_id": doc.id,
+                "original_name": doc.original_name,
+                "file_type": doc.file_type,
+                "has_thumbnail": doc.thumbnail_path is not None,
+                "matches": matches,
+            })
+
+    return jsonify(results), 200

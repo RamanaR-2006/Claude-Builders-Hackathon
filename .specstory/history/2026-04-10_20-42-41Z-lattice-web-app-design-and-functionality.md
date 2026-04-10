@@ -3871,4 +3871,2158 @@ Let me analyze the issues:
 1. **Color scheme**: Need to change from light/indigo to a dark gem/geometric theme (think deep purples, teals, emeralds against dark backgrounds)
 
 2. **Lock and Delete buttons don't work**: The problem is in `DocumentNode.jsx`. The `handlePointerDown` on the parent div calls `e.preventDefault()` and `e.stopPropagation()` which intercepts the click events on the buttons before they can fire. The buttons have `onClick` with `e.stopPropagation()` but the `onPointerDown` on the parent fires first and captures the pointer. The issue is that `setPointerCapture` on the outer div captures all pointer events, so buttons inside never get their click events.
-</details></think>
+   
+   To fix this, the buttons need to handle `onPointerDown` themselves to stop propagation before the parent's handler runs.
+
+3. **Thumbnails non-descriptive**: The thumbnail generation relies on `pdf2image` and `ffmpeg`, which fail silently if those system dependencies aren't installed, causing the fallback icon to show instead. I should leverage the file serving endpoint to preview PDFs by embedding the first page, and use poster frames for videos. The real issue is that the frontend needs better handling when thumbnail generation fails, and the `has_thumbnail` flag should properly reflect whether a thumbnail is actually available.
+
+Since the user wants actual content previews, I'll improve the backend to try `PyMuPDF` as a fallback for PDFs when poppler isn't available, and similarly handle video poster frames gracefully.
+
+4. **Click to open document**: I need a document viewer modal that embeds PDFs in an iframe, uses an HTML5 video player for videos, and an HTML5 audio player for audio files.
+
+5. **Duplicate connections**: The backend check at lines 52-60 looks solid—it validates both directions. But the frontend might not be handling the 409 error response properly when a duplicate connection is attempted, so I should add better error handling there.
+
+Actually, let me trace through the backend logic more carefully. The `existing` variable checks source→target first, then if that's empty, checks target→source. If either exists, it returns 409. That logic seems right, but the user is still reporting duplicates somehow.
+
+Maybe the issue is on the frontend side—perhaps the connection state is being updated before the backend validation completes, or there's a race condition where multiple requests fire before the first one returns an error.
+
+I think the safest approach is to add a frontend-side check before attempting the connection, keep the backend validation as a safety net, and add a database constraint to prevent duplicates at the schema level. Let me start by updating the theme across all the UI components.
+
+For the dark gem aesthetic, I'm going with a very dark navy base, darker card surfaces, and jewel-tone accents like amethyst purple to give it that polished, sophisticated feel.</details></think>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now I have a clear picture of all five issues. Let me also read the remaining components I'll need to modify.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/ConnectionLine.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/ConnectionModal.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/UploadModal.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Login.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Register.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Good, I now have full context on every file. Here's my diagnosis:
+
+1. **Lock/Delete broken**: The `onPointerDown` handler on the outer div calls `e.preventDefault()` + `e.stopPropagation()` and captures the pointer, which swallows all subsequent events including button clicks. Buttons need `onPointerDown={e => e.stopPropagation()}` so the parent drag logic never fires on them.
+
+2. **Duplicate connections**: The backend check is correct, but the frontend catches + silently discards the 409 error. It also doesn't do a local state check. Need both a frontend guard and user feedback.
+
+3. **Thumbnails**: PDF needs `pymupdf` as a fallback (doesn't require poppler). Video thumbnails need `ffmpeg`. The frontend should always show something meaningful.
+
+4. **Click to open**: Need a new `DocumentViewer` modal component.
+
+5. **Color scheme**: Full dark gem/geometric overhaul.
+
+Let me start implementing.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Overhaul color scheme to dark gem/geometric aesthetic",
+      "id": "color-scheme",
+      "status": "in_progress"
+    },
+    {
+      "content": "Fix lock and delete buttons on document thumbnails",
+      "id": "lock-delete",
+      "status": "pending"
+    },
+    {
+      "content": "Improve thumbnail display: show document still/preview, not just icons",
+      "id": "thumbnails",
+      "status": "pending"
+    },
+    {
+      "content": "Add document viewer/player when user clicks a thumbnail",
+      "id": "doc-viewer",
+      "status": "pending"
+    },
+    {
+      "content": "Prevent duplicate connections between the same two documents",
+      "id": "dup-connections",
+      "status": "pending"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Overhaul color scheme to dark gem/geometric aesthetic",
+      "id": "color-scheme",
+      "status": "pending"
+    },
+    {
+      "content": "Fix lock and delete buttons on document thumbnails",
+      "id": "lock-delete",
+      "status": "pending"
+    },
+    {
+      "content": "Improve thumbnail display: show document still/preview, not just icons",
+      "id": "thumbnails",
+      "status": "pending"
+    },
+    {
+      "content": "Add document viewer/player when user clicks a thumbnail",
+      "id": "doc-viewer",
+      "status": "pending"
+    },
+    {
+      "content": "Prevent duplicate connections between the same two documents",
+      "id": "dup-connections",
+      "status": "pending"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Starting with the dark gem color scheme across all files, then fixing the functional bugs.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/index.css</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Login.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Register.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Navbar.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/ConnectionLine.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/ConnectionModal.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/UploadModal.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Color scheme done for all surrounding components. Now the DocumentNode with the dark theme **and** the lock/delete button fix, plus the Canvas with dark theme and duplicate connection guard. I'll also create the new DocumentViewer component.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Overhaul color scheme to dark gem/geometric aesthetic",
+      "id": "color-scheme",
+      "status": "completed"
+    },
+    {
+      "content": "Fix lock and delete buttons on document thumbnails",
+      "id": "lock-delete",
+      "status": "in_progress"
+    },
+    {
+      "content": "Improve thumbnail display: show document still/preview, not just icons",
+      "id": "thumbnails",
+      "status": "pending"
+    },
+    {
+      "content": "Add document viewer/player when user clicks a thumbnail",
+      "id": "doc-viewer",
+      "status": "pending"
+    },
+    {
+      "content": "Prevent duplicate connections between the same two documents",
+      "id": "dup-connections",
+      "status": "pending"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Overhaul color scheme to dark gem/geometric aesthetic",
+      "id": "color-scheme",
+      "status": "in_progress"
+    },
+    {
+      "content": "Fix lock and delete buttons on document thumbnails",
+      "id": "lock-delete",
+      "status": "pending"
+    },
+    {
+      "content": "Improve thumbnail display: show document still/preview, not just icons",
+      "id": "thumbnails",
+      "status": "pending"
+    },
+    {
+      "content": "Add document viewer/player when user clicks a thumbnail",
+      "id": "doc-viewer",
+      "status": "pending"
+    },
+    {
+      "content": "Prevent duplicate connections between the same two documents",
+      "id": "dup-connections",
+      "status": "pending"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/DocumentNode.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now create the DocumentViewer component and update Canvas + Home to wire everything together with the duplicate connection guard:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Overhaul color scheme to dark gem/geometric aesthetic",
+      "id": "color-scheme",
+      "status": "completed"
+    },
+    {
+      "content": "Fix lock and delete buttons on document thumbnails",
+      "id": "lock-delete",
+      "status": "completed"
+    },
+    {
+      "content": "Improve thumbnail display: show document still/preview, not just icons",
+      "id": "thumbnails",
+      "status": "pending"
+    },
+    {
+      "content": "Add document viewer/player when user clicks a thumbnail",
+      "id": "doc-viewer",
+      "status": "in_progress"
+    },
+    {
+      "content": "Prevent duplicate connections between the same two documents",
+      "id": "dup-connections",
+      "status": "in_progress"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Overhaul color scheme to dark gem/geometric aesthetic",
+      "id": "color-scheme",
+      "status": "completed"
+    },
+    {
+      "content": "Fix lock and delete buttons on document thumbnails",
+      "id": "lock-delete",
+      "status": "in_progress"
+    },
+    {
+      "content": "Improve thumbnail display: show document still/preview, not just icons",
+      "id": "thumbnails",
+      "status": "pending"
+    },
+    {
+      "content": "Add document viewer/player when user clicks a thumbnail",
+      "id": "doc-viewer",
+      "status": "pending"
+    },
+    {
+      "content": "Prevent duplicate connections between the same two documents",
+      "id": "dup-connections",
+      "status": "pending"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/DocumentViewer.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Canvas.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now let me improve the thumbnail generation backend. I'll add `pymupdf` as a fallback for PDFs (doesn't need poppler) and improve the overall logic:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Overhaul color scheme to dark gem/geometric aesthetic",
+      "id": "color-scheme",
+      "status": "completed"
+    },
+    {
+      "content": "Fix lock and delete buttons on document thumbnails",
+      "id": "lock-delete",
+      "status": "completed"
+    },
+    {
+      "content": "Improve thumbnail display: show document still/preview, not just icons",
+      "id": "thumbnails",
+      "status": "in_progress"
+    },
+    {
+      "content": "Add document viewer/player when user clicks a thumbnail",
+      "id": "doc-viewer",
+      "status": "completed"
+    },
+    {
+      "content": "Prevent duplicate connections between the same two documents",
+      "id": "dup-connections",
+      "status": "completed"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Overhaul color scheme to dark gem/geometric aesthetic",
+      "id": "color-scheme",
+      "status": "completed"
+    },
+    {
+      "content": "Fix lock and delete buttons on document thumbnails",
+      "id": "lock-delete",
+      "status": "completed"
+    },
+    {
+      "content": "Improve thumbnail display: show document still/preview, not just icons",
+      "id": "thumbnails",
+      "status": "pending"
+    },
+    {
+      "content": "Add document viewer/player when user clicks a thumbnail",
+      "id": "doc-viewer",
+      "status": "in_progress"
+    },
+    {
+      "content": "Prevent duplicate connections between the same two documents",
+      "id": "dup-connections",
+      "status": "in_progress"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend && source venv/bin/activate && pip install pymupdf 2>&1 | tail -3</summary>
+
+```bash
+cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend && source venv/bin/activate && pip install pymupdf 2>&1 | tail -3
+```
+
+```
+
+[notice] A new release of pip is available: 25.3 -&gt; 26.0.1
+[notice] To update, run: pip install --upgrade pip
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/requirements.txt</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now update the thumbnail generation to use PyMuPDF as the primary PDF renderer (no external system dependency), with `pdf2image` as a fallback:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/documents.py</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now let me verify the frontend builds cleanly and check for lints:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend && npx vite build 2>&1</summary>
+
+```bash
+cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend && npx vite build 2>&1
+```
+
+```
+npm warn Unknown env config "devdir". This will stop working in the next major version of npm.
+vite v8.0.8 building client environment for production...
+[2Ktransforming...✓ 1792 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.65 kB │ gzip:  0.35 kB
+dist/assets/index-CIFeZDyo.css   24.38 kB │ gzip:  5.00 kB
+dist/assets/index-BMWrbM23.js   296.62 kB │ gzip: 95.26 kB
+
+✓ built in 358ms
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "frontend/src"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "frontend/src"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Clean build, zero lints. Let me restart the Flask server so it picks up the PyMuPDF changes:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: lsof -i :5001 -t 2>/dev/null | xargs kill -9 2>/dev/null; sleep 1; echo "killed"</summary>
+
+```bash
+lsof -i :5001 -t 2>/dev/null | xargs kill -9 2>/dev/null; sleep 1; echo "killed"
+```
+
+```
+killed
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend && source venv/bin/activate && python run.py</summary>
+
+```bash
+cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend && source venv/bin/activate && python run.py
+```
+
+```
+ * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 342-700-901
+]633;C * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 342-700-901
+127.0.0.1 - - [10/Apr/2026 16:58:55] "[35m[1mPOST /api/auth/register HTTP/1.1[0m" 201 -
+127.0.0.1 - - [10/Apr/2026 16:59:04] "[35m[1mPOST /api/documents/upload HTTP/1.1[0m" 201 -
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Let me also make sure a Vite dev server is running:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: lsof -i :5173 -t 2>/dev/null | head -1</summary>
+
+```bash
+lsof -i :5173 -t 2>/dev/null | head -1
+```
+
+```
+82904
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Vite is still running on 5173. Let me do a quick API test to verify the backend still works and PDF thumbnails generate properly:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: curl -s -c /tmp/latt_test -b /tmp/latt_test -X POST http://localhost:5001/api/auth/register -H "Content-Type: application/json" -d '{"email":"thumb@test.com","password":"test123"}' && echo ""</summary>
+
+```bash
+curl -s -c /tmp/latt_test -b /tmp/latt_test -X POST http://localhost:5001/api/auth/register -H "Content-Type: application/json" -d '{"email":"thumb@test.com","password":"test123"}' && echo ""
+```
+
+```
+{
+  "email": "thumb@test.com",
+  "id": 4
+}
+
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: # Create a real minimal PDF with text
+python3 -c "
+import fitz
+doc = fitz.open()
+page = doc.new_page()
+page.insert_text((100, 200), 'Hello Lattice!', fontsize=36)
+doc.save('/tmp/real_test.pdf')
+doc.close()
+print('Created test PDF')
+"
+# Upload it
+curl -s -b /tmp/latt_test -X POST http://localhost:5001/api/documents/upload -F "file=@/tmp/real_test.pdf" 2>&1</summary>
+
+```bash
+# Create a real minimal PDF with text
+python3 -c "
+import fitz
+doc = fitz.open()
+page = doc.new_page()
+page.insert_text((100, 200), 'Hello Lattice!', fontsize=36)
+doc.save('/tmp/real_test.pdf')
+doc.close()
+print('Created test PDF')
+"
+# Upload it
+curl -s -b /tmp/latt_test -X POST http://localhost:5001/api/documents/upload -F "file=@/tmp/real_test.pdf" 2>&1
+```
+
+```
+Created test PDF
+{
+  "file_type": "pdf",
+  "has_thumbnail": true,
+  "id": 4,
+  "is_locked": false,
+  "original_name": "real_test.pdf",
+  "position_x": 80.0,
+  "position_y": 80.0,
+  "uploaded_at": "2026-04-10T21:59:04.101846"
+}
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+`has_thumbnail: true` -- PyMuPDF successfully generates PDF thumbnails now. Let me clean up the test data:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: rm -f /tmp/real_test.pdf /tmp/latt_test /tmp/lattice_cookies /tmp/lattice_cookies2</summary>
+
+```bash
+rm -f /tmp/real_test.pdf /tmp/latt_test /tmp/lattice_cookies /tmp/lattice_cookies2
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Overhaul color scheme to dark gem/geometric aesthetic",
+      "id": "color-scheme",
+      "status": "completed"
+    },
+    {
+      "content": "Fix lock and delete buttons on document thumbnails",
+      "id": "lock-delete",
+      "status": "completed"
+    },
+    {
+      "content": "Improve thumbnail display: show document still/preview, not just icons",
+      "id": "thumbnails",
+      "status": "completed"
+    },
+    {
+      "content": "Add document viewer/player when user clicks a thumbnail",
+      "id": "doc-viewer",
+      "status": "completed"
+    },
+    {
+      "content": "Prevent duplicate connections between the same two documents",
+      "id": "dup-connections",
+      "status": "completed"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Overhaul color scheme to dark gem/geometric aesthetic",
+      "id": "color-scheme",
+      "status": "completed"
+    },
+    {
+      "content": "Fix lock and delete buttons on document thumbnails",
+      "id": "lock-delete",
+      "status": "completed"
+    },
+    {
+      "content": "Improve thumbnail display: show document still/preview, not just icons",
+      "id": "thumbnails",
+      "status": "in_progress"
+    },
+    {
+      "content": "Add document viewer/player when user clicks a thumbnail",
+      "id": "doc-viewer",
+      "status": "completed"
+    },
+    {
+      "content": "Prevent duplicate connections between the same two documents",
+      "id": "dup-connections",
+      "status": "completed"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+All five issues are resolved. Here's a summary of what changed:
+
+**1. Dark gem/geometric color scheme** -- Complete visual overhaul across every file. Dark navy backgrounds (`#0b0b14` / `#111121`), amethyst purple accent (`gem-500` / `gem-600`), cyan for connections, ruby for errors/delete, emerald for audio. The canvas now has a subtle dot grid pattern evoking a geometric lattice. Connection midpoints are rendered as rotated diamond shapes instead of circles.
+
+**2. Lock and Delete buttons fixed** -- The root cause was that `onPointerDown` on the parent div captured the pointer before button clicks could fire. Added `onPointerDown={e => e.stopPropagation()}` to every action button so the drag handler never intercepts them. Also added a persistent lock icon indicator in the top-left when a document is locked.
+
+**3. Descriptive thumbnails** -- Added `pymupdf` to the backend as the primary PDF thumbnail generator (renders the first page at 2x resolution as a PNG, zero system dependencies). `pdf2image`/poppler is kept as a fallback. Video thumbnails still use `ffmpeg` when available.
+
+**4. Document viewer** -- New `DocumentViewer` modal component. Clicking the eye icon on a document opens a full-screen viewer: PDFs render in an iframe, videos play in an HTML5 `<video>` element, audio shows a player with a download option. Every viewer includes a download button in the header.
+
+**5. Duplicate connections prevented** -- Added a frontend guard in `handleNodeClick` that checks if a connection already exists in either direction before sending the API request. The backend's existing 409 check remains as a second layer of defense.
+
+---
+
+_**User**_
+
+The app is looking much better and all the cons were fixed. Let's add a new Search feature: the user will input a term in a searchbar, the output will be a list of all documents that contain that query (clicking the document on that list will open that document showing the portion that contains the query highlighted).
+
+
+
+---
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Let me explore the current codebase to understand the exact state of things before planning.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="task_v2">
+<details>
+<summary>Tool use: **task_v2**</summary>
+
+
+Parameters:
+
+```json
+{
+  "description": "Explore backend document handling",
+  "model": "composer-2-fast",
+  "name": "explore",
+  "prompt": "Read the following files and return their full contents:\n1. /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/documents.py\n2. /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/models.py\n3. /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/requirements.txt\n\nI need to understand the current document upload flow, what metadata is stored, and what Python packages are available.",
+  "subagentType": "explore"
+}
+```
+Additional data:
+
+```json
+{
+  "status": "success",
+  "subagentComposerId": "60b7e42e-2331-4c7f-acbe-c38bf5970061",
+  "terminationReason": "completed"
+}
+```
+Result:
+
+```json
+{
+  "agentId": "60b7e42e-2331-4c7f-acbe-c38bf5970061"
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="task_v2"><details>
+<summary>Tool use: **task_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="task_v2">
+<details>
+<summary>Tool use: **task_v2**</summary>
+
+
+Parameters:
+
+```json
+{
+  "description": "Explore frontend document viewer",
+  "model": "composer-2-fast",
+  "name": "explore",
+  "prompt": "Read the following files and return their full contents:\n1. /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/DocumentViewer.jsx\n2. /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Navbar.jsx\n3. /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx\n4. /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Canvas.jsx\n\nI need to understand how documents are currently viewed, the navbar layout, and how the Home page orchestrates state.",
+  "subagentType": "explore"
+}
+```
+Additional data:
+
+```json
+{
+  "status": "success",
+  "subagentComposerId": "2e780492-df6f-4741-bfb5-914712b88ab5",
+  "terminationReason": "completed"
+}
+```
+Result:
+
+```json
+{
+  "agentId": "2e780492-df6f-4741-bfb5-914712b88ab5"
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="task_v2"><details>
+<summary>Tool use: **task_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<think><details><summary>Thought Process</summary>
+Now I have full context. Let me think through the search feature:
+
+**What needs to happen:**
+
+1. **Backend**: A new search endpoint `GET /api/documents/search?q=term` that:
+   - For PDFs: Uses PyMuPDF (`fitz`) to search text in the document and return matching page numbers + surrounding text snippets
+   - For audio/video: Can only match by filename since we can't easily search inside media files
+   - Returns a list of documents that contain the query, along with match details (page numbers, snippets)
+
+2. **Frontend**:
+   - A search bar in the Navbar
+   - A search results panel showing matching documents with snippets
+   - Clicking a result opens the DocumentViewer, and for PDFs I need to navigate to the matching page and highlight the text
+
+The main challenge is highlighting matches in the PDF viewer—most browsers support the `#search` URL fragment for PDFs, so I can pass the search term directly to the viewer and let it handle the highlighting natively.
+
+For the backend, I'm thinking PyMuPDF can search for text in PDFs and return the bounding boxes of matches...
+
+I'd iterate through each document, collect the matches with page numbers and snippets, and for audio/video files just match against filenames. The API response would include the document ID, filename, file type, and an array of matches with page numbers and text snippets.
+
+On the frontend side, I need to add a search input to the navbar that calls the search API on Enter or after debouncing, then display the results in a dropdown showing the document name, file type icon, and highlighted snippet—clicking a result should open that document to the right location.
+
+To complete this, the DocumentViewer component needs to accept optional search parameters and use them to navigate to the correct page and highlight the query term, which I can do by appending the page and search term to the PDF iframe URL.</details></think>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+I have full context on the codebase now. Here's the plan:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="create_plan">
+<details>
+<summary>Tool use: **create_plan**</summary>
+
+
+Parameters:
+
+```json
+{
+  "name": "Search Feature",
+  "overview": "Add a full-text search feature with a backend endpoint that uses PyMuPDF to search inside PDFs (and filename matching for audio/video), a search bar in the Navbar, a results panel, and an enhanced DocumentViewer that jumps to the matching page with the query highlighted.",
+  "plan": "# Search Feature\n\n## How It Works\n\n&#96;&#96;&#96;mermaid\nsequenceDiagram\n    participant User\n    participant SearchBar as Navbar SearchBar\n    participant API as GET /api/documents/search\n    participant PyMuPDF as PyMuPDF / fitz\n    participant Viewer as DocumentViewer\n\n    User-\u003e\u003eSearchBar: Types query, presses Enter\n    SearchBar-\u003e\u003eAPI: GET /api/documents/search?q=term\n    API-\u003e\u003ePyMuPDF: For each user PDF, search text\n    PyMuPDF--\u003e\u003eAPI: Page numbers + text snippets\n    API--\u003e\u003eSearchBar: List of matching docs with snippets\n    SearchBar--\u003e\u003eUser: Results dropdown panel\n    User-\u003e\u003eViewer: Clicks a result\n    Viewer-\u003e\u003eViewer: Opens PDF at #page=N with highlight\n&#96;&#96;&#96;\n\n## Backend: Search Endpoint\n\nAdd a new route to [backend/app/documents.py](backend/app/documents.py):\n\n**&#96;GET /api/documents/search?q=\u003cterm\u003e&#96;** (login required, scoped to &#96;current_user.id&#96;)\n\n- Iterate over all &#96;Document&#96; rows for the user.\n- **PDFs**: Open with &#96;fitz.open(filepath)&#96;, loop through pages calling &#96;page.search_for(query)&#96; to find matches. For each matching page, extract a text snippet (a few words around the first occurrence) using &#96;page.get_text(\"text\")&#96;.\n- **Audio / Video**: Match against &#96;original_name&#96; only (case-insensitive substring check). No in-content search.\n- Return a JSON list:\n\n&#96;&#96;&#96;json\n[\n  {\n    \"doc_id\": 3,\n    \"original_name\": \"report.pdf\",\n    \"file_type\": \"pdf\",\n    \"has_thumbnail\": true,\n    \"matches\": [\n      { \"page\": 1, \"snippet\": \"…the lattice structure connects…\" },\n      { \"page\": 4, \"snippet\": \"…updated lattice diagram shows…\" }\n    ]\n  }\n]\n&#96;&#96;&#96;\n\n- If the query is empty or missing, return &#96;400&#96;.\n- Filename-only matches get &#96;\"matches\": [{ \"page\": null, \"snippet\": null }]&#96; so the frontend knows it was a name match.\n\n## Frontend: Search Bar in Navbar\n\nModify [frontend/src/components/Navbar.jsx](frontend/src/components/Navbar.jsx):\n\n- Add a search input between the \"Lattice\" title and the right-side buttons.\n- Controlled input with local state. Fires the search on Enter keypress.\n- Pass an &#96;onSearch(query)&#96; callback prop from &#96;Home&#96;.\n\n## Frontend: Search Results Panel\n\nCreate a new **[frontend/src/components/SearchResults.jsx](frontend/src/components/SearchResults.jsx)** component:\n\n- Rendered inside [frontend/src/pages/Home.jsx](frontend/src/pages/Home.jsx), positioned as an overlay panel below the Navbar (absolute, left side, dark surface card matching the gem theme).\n- Receives &#96;results&#96;, &#96;query&#96;, &#96;onSelect(docId, page, query)&#96;, and &#96;onClose&#96;.\n- Each result row shows: file type icon, document name, and up to 2 snippet lines with the query substring wrapped in a &#96;\u003cmark\u003e&#96; tag styled with the gem accent.\n- Clicking a result calls &#96;onSelect&#96;.\n- A close button or clicking outside dismisses the panel.\n\n## Frontend: Enhanced DocumentViewer\n\nModify [frontend/src/components/DocumentViewer.jsx](frontend/src/components/DocumentViewer.jsx):\n\n- Accept optional props &#96;searchQuery&#96; and &#96;searchPage&#96;.\n- When viewing a PDF with these props set, append &#96;#page={searchPage}&#96; to the iframe &#96;src&#96; URL. Chrome/Edge/Firefox built-in PDF viewers support the &#96;#page=N&#96; fragment to jump directly to the page.\n- Show a small pill/badge in the viewer header: \"Match on page N\" so the user knows where to look.\n- For audio/video (filename-only matches), no special behavior -- just opens the file normally.\n\n## Frontend: Home Orchestration\n\nModify [frontend/src/pages/Home.jsx](frontend/src/pages/Home.jsx):\n\n- Add state: &#96;searchResults&#96;, &#96;searchQuery&#96;.\n- &#96;handleSearch(query)&#96;: calls &#96;api.get('/documents/search', { params: { q: query } })&#96;, stores results.\n- &#96;handleSearchSelect(docId, page, query)&#96;: looks up the doc from &#96;docs&#96; state, sets &#96;viewingDoc&#96; with extra &#96;searchPage&#96; and &#96;searchQuery&#96; fields, then clears search results.\n- Pass &#96;onSearch&#96; to &#96;Navbar&#96;, render &#96;SearchResults&#96; when results are present, pass &#96;searchQuery&#96; / &#96;searchPage&#96; through to &#96;DocumentViewer&#96;.\n\n## Files Changed\n\n- [backend/app/documents.py](backend/app/documents.py) -- add &#96;search&#96; route\n- [frontend/src/components/Navbar.jsx](frontend/src/components/Navbar.jsx) -- add search input\n- [frontend/src/components/SearchResults.jsx](frontend/src/components/SearchResults.jsx) -- new file\n- [frontend/src/components/DocumentViewer.jsx](frontend/src/components/DocumentViewer.jsx) -- accept search props, append &#96;#page=N&#96;\n- [frontend/src/pages/Home.jsx](frontend/src/pages/Home.jsx) -- wire search state and callbacks\n",
+  "todos": [
+    {
+      "content": "Add GET /api/documents/search?q= endpoint using PyMuPDF for PDF text search and filename matching for audio/video",
+      "id": "backend-search",
+      "status": "pending"
+    },
+    {
+      "content": "Add search input to Navbar with onSearch callback",
+      "id": "navbar-search",
+      "status": "pending"
+    },
+    {
+      "content": "Create SearchResults.jsx panel showing matching docs with highlighted snippets",
+      "id": "search-results",
+      "status": "pending"
+    },
+    {
+      "content": "Enhance DocumentViewer to accept searchPage/searchQuery and jump to matching PDF page",
+      "id": "viewer-highlight",
+      "status": "pending"
+    },
+    {
+      "content": "Wire search state, API call, and result selection in Home.jsx",
+      "id": "home-wiring",
+      "status": "pending"
+    }
+  ]
+}
+```
+Additional data:
+
+```json
+{
+  "hasOpenedEditor": true,
+  "planId": "search_feature_86dc84e6",
+  "planUri": "file:///Users/kvg2005/.cursor/plans/search_feature_86dc84e6.plan.md",
+  "reviewData": {
+    "isShowingInput": false,
+    "selectedOption": "none",
+    "status": "Requested"
+  }
+}
+```
+Result:
+
+```json
+{
+  "rejected": {}
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="create_plan"><details>
+<summary>Tool use: **create_plan**</summary>
+
+</details></tool-use>
+
+---
+
+_**User**_
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Add GET /api/documents/search?q= endpoint using PyMuPDF for PDF text search and filename matching for audio/video",
+      "id": "backend-search",
+      "status": "in_progress"
+    },
+    {
+      "content": "Add search input to Navbar with onSearch callback",
+      "id": "navbar-search",
+      "status": "pending"
+    },
+    {
+      "content": "Create SearchResults.jsx panel showing matching docs with highlighted snippets",
+      "id": "search-results",
+      "status": "pending"
+    },
+    {
+      "content": "Enhance DocumentViewer to accept searchPage/searchQuery and jump to matching PDF page",
+      "id": "viewer-highlight",
+      "status": "pending"
+    },
+    {
+      "content": "Wire search state, API call, and result selection in Home.jsx",
+      "id": "home-wiring",
+      "status": "pending"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Add GET /api/documents/search?q= endpoint using PyMuPDF for PDF text search and filename matching for audio/video",
+      "id": "backend-search",
+      "status": "pending"
+    },
+    {
+      "content": "Add search input to Navbar with onSearch callback",
+      "id": "navbar-search",
+      "status": "pending"
+    },
+    {
+      "content": "Create SearchResults.jsx panel showing matching docs with highlighted snippets",
+      "id": "search-results",
+      "status": "pending"
+    },
+    {
+      "content": "Enhance DocumentViewer to accept searchPage/searchQuery and jump to matching PDF page",
+      "id": "viewer-highlight",
+      "status": "pending"
+    },
+    {
+      "content": "Wire search state, API call, and result selection in Home.jsx",
+      "id": "home-wiring",
+      "status": "pending"
+    }
+  ],
+  "success": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/documents.py</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Adding the search endpoint to the backend:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/documents.py</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now add the search route at the end of the file:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/documents.py</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Backend search done. Now the frontend components. Let me read the current files I need to modify, then do all frontend changes:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Add GET /api/documents/search?q= endpoint using PyMuPDF for PDF text search and filename matching for audio/video",
+      "id": "backend-search",
+      "status": "completed"
+    },
+    {
+      "content": "Add search input to Navbar with onSearch callback",
+      "id": "navbar-search",
+      "status": "in_progress"
+    },
+    {
+      "content": "Create SearchResults.jsx panel showing matching docs with highlighted snippets",
+      "id": "search-results",
+      "status": "pending"
+    },
+    {
+      "content": "Enhance DocumentViewer to accept searchPage/searchQuery and jump to matching PDF page",
+      "id": "viewer-highlight",
+      "status": "pending"
+    },
+    {
+      "content": "Wire search state, API call, and result selection in Home.jsx",
+      "id": "home-wiring",
+      "status": "pending"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Add GET /api/documents/search?q= endpoint using PyMuPDF for PDF text search and filename matching for audio/video",
+      "id": "backend-search",
+      "status": "in_progress"
+    },
+    {
+      "content": "Add search input to Navbar with onSearch callback",
+      "id": "navbar-search",
+      "status": "pending"
+    },
+    {
+      "content": "Create SearchResults.jsx panel showing matching docs with highlighted snippets",
+      "id": "search-results",
+      "status": "pending"
+    },
+    {
+      "content": "Enhance DocumentViewer to accept searchPage/searchQuery and jump to matching PDF page",
+      "id": "viewer-highlight",
+      "status": "pending"
+    },
+    {
+      "content": "Wire search state, API call, and result selection in Home.jsx",
+      "id": "home-wiring",
+      "status": "pending"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Navbar.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/DocumentViewer.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Good. Now I'll update all the frontend files. Let me do them all at once:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Navbar.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/SearchResults.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/DocumentViewer.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now let me verify the build and check for lints:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend && npx vite build 2>&1</summary>
+
+```bash
+cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend && npx vite build 2>&1
+```
+
+```
+npm warn Unknown env config "devdir". This will stop working in the next major version of npm.
+vite v8.0.8 building client environment for production...
+[2Ktransforming...✓ 1793 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.65 kB │ gzip:  0.35 kB
+dist/assets/index-CqpZ_1l0.css   26.57 kB │ gzip:  5.34 kB
+dist/assets/index-Ccer25km.js   301.12 kB │ gzip: 96.24 kB
+
+✓ built in 296ms
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "frontend/src/components/Navbar.jsx",
+    "frontend/src/components/SearchResults.jsx",
+    "frontend/src/components/DocumentViewer.jsx",
+    "frontend/src/pages/Home.jsx"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "frontend/src/components/Navbar.jsx"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/components/SearchResults.jsx"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/components/DocumentViewer.jsx"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/pages/Home.jsx"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Clean build, zero lints. Let me now smoke test the backend search endpoint:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: # Check if Flask is running
+lsof -i :5001 -t 2>/dev/null | head -1 || echo "not running"</summary>
+
+```bash
+# Check if Flask is running
+lsof -i :5001 -t 2>/dev/null | head -1 || echo "not running"
+```
+
+```
+16464
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: # Register/login a test user, create a real PDF with searchable text, upload it, then test search
+curl -s -c /tmp/search_test -X POST http://localhost:5001/api/auth/register -H "Content-Type: application/json" -d '{"email":"searchtest@test.com","password":"test123"}' && echo ""
+
+python3 -c "
+import fitz
+doc = fitz.open()
+page = doc.new_page()
+page.insert_text((72, 100), 'The lattice structure is a geometric pattern', fontsize=14)
+page.insert_text((72, 130), 'used in crystallography and materials science.', fontsize=14)
+page2 = doc.new_page()
+page2.insert_text((72, 100), 'Diamonds are formed under high pressure', fontsize=14)
+page2.insert_text((72, 130), 'creating a beautiful lattice of carbon atoms.', fontsize=14)
+doc.save('/tmp/search_test.pdf')
+doc.close()
+print('Created 2-page test PDF')
+"
+
+curl -s -b /tmp/search_test -X POST http://localhost:5001/api/documents/upload -F "file=@/tmp/search_test.pdf" && echo ""</summary>
+
+```bash
+# Register/login a test user, create a real PDF with searchable text, upload it, then test search
+curl -s -c /tmp/search_test -X POST http://localhost:5001/api/auth/register -H "Content-Type: application/json" -d '{"email":"searchtest@test.com","password":"test123"}' && echo ""
+
+python3 -c "
+import fitz
+doc = fitz.open()
+page = doc.new_page()
+page.insert_text((72, 100), 'The lattice structure is a geometric pattern', fontsize=14)
+page.insert_text((72, 130), 'used in crystallography and materials science.', fontsize=14)
+page2 = doc.new_page()
+page2.insert_text((72, 100), 'Diamonds are formed under high pressure', fontsize=14)
+page2.insert_text((72, 130), 'creating a beautiful lattice of carbon atoms.', fontsize=14)
+doc.save('/tmp/search_test.pdf')
+doc.close()
+print('Created 2-page test PDF')
+"
+
+curl -s -b /tmp/search_test -X POST http://localhost:5001/api/documents/upload -F "file=@/tmp/search_test.pdf" && echo ""
+```
+
+```
+{
+  "email": "searchtest@test.com",
+  "id": 5
+}
+
+Created 2-page test PDF
+{
+  "file_type": "pdf",
+  "has_thumbnail": true,
+  "id": 7,
+  "is_locked": false,
+  "original_name": "search_test.pdf",
+  "position_x": 80.0,
+  "position_y": 80.0,
+  "uploaded_at": "2026-04-10T23:02:08.832919"
+}
+
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: # Search for "lattice" - should find matches on both pages
+curl -s -b /tmp/search_test "http://localhost:5001/api/documents/search?q=lattice" | python3 -m json.tool
+
+echo "---"
+
+# Search for "diamond" - should find match on page 2 only
+curl -s -b /tmp/search_test "http://localhost:5001/api/documents/search?q=diamond" | python3 -m json.tool
+
+echo "---"
+
+# Search for "nonexistent" - should return empty
+curl -s -b /tmp/search_test "http://localhost:5001/api/documents/search?q=nonexistent" | python3 -m json.tool
+
+echo "---"
+
+# Search for filename match - "search_test"
+curl -s -b /tmp/search_test "http://localhost:5001/api/documents/search?q=search_test" | python3 -m json.tool</summary>
+
+```bash
+# Search for "lattice" - should find matches on both pages
+curl -s -b /tmp/search_test "http://localhost:5001/api/documents/search?q=lattice" | python3 -m json.tool
+
+echo "---"
+
+# Search for "diamond" - should find match on page 2 only
+curl -s -b /tmp/search_test "http://localhost:5001/api/documents/search?q=diamond" | python3 -m json.tool
+
+echo "---"
+
+# Search for "nonexistent" - should return empty
+curl -s -b /tmp/search_test "http://localhost:5001/api/documents/search?q=nonexistent" | python3 -m json.tool
+
+echo "---"
+
+# Search for filename match - "search_test"
+curl -s -b /tmp/search_test "http://localhost:5001/api/documents/search?q=search_test" | python3 -m json.tool
+```
+
+```
+[
+    {
+        "doc_id": 7,
+        "file_type": "pdf",
+        "has_thumbnail": true,
+        "matches": [
+            {
+                "page": 1,
+                "snippet": "The lattice structure is a geometric pattern used in crystallography an\u2026"
+            },
+            {
+                "page": 2,
+                "snippet": "\u2026iamonds are formed under high pressure creating a beautiful lattice of carbon atoms."
+            }
+        ],
+        "original_name": "search_test.pdf"
+    }
+]
+---
+[
+    {
+        "doc_id": 7,
+        "file_type": "pdf",
+        "has_thumbnail": true,
+        "matches": [
+            {
+                "page": 2,
+                "snippet": "Diamonds are formed under high pressure creating a beautiful lattic\u2026"
+            }
+        ],
+        "original_name": "search_test.pdf"
+    }
+]
+---
+[]
+---
+[
+    {
+        "doc_id": 7,
+        "file_type": "pdf",
+        "has_thumbnail": true,
+        "matches": [
+            {
+                "page": null,
+                "snippet": null
+            }
+        ],
+        "original_name": "search_test.pdf"
+    }
+]
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+All search scenarios work perfectly:
+- "lattice" found on both pages with correct snippets
+- "diamond" found only on page 2
+- "nonexistent" returns empty array
+- "search_test" matches by filename with `page: null, snippet: null`
+
+Let me clean up and mark everything done:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: rm -f /tmp/search_test /tmp/search_test.pdf</summary>
+
+```bash
+rm -f /tmp/search_test /tmp/search_test.pdf
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Add GET /api/documents/search?q= endpoint using PyMuPDF for PDF text search and filename matching for audio/video",
+      "id": "backend-search",
+      "status": "completed"
+    },
+    {
+      "content": "Add search input to Navbar with onSearch callback",
+      "id": "navbar-search",
+      "status": "completed"
+    },
+    {
+      "content": "Create SearchResults.jsx panel showing matching docs with highlighted snippets",
+      "id": "search-results",
+      "status": "completed"
+    },
+    {
+      "content": "Enhance DocumentViewer to accept searchPage/searchQuery and jump to matching PDF page",
+      "id": "viewer-highlight",
+      "status": "completed"
+    },
+    {
+      "content": "Wire search state, API call, and result selection in Home.jsx",
+      "id": "home-wiring",
+      "status": "completed"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Add GET /api/documents/search?q= endpoint using PyMuPDF for PDF text search and filename matching for audio/video",
+      "id": "backend-search",
+      "status": "completed"
+    },
+    {
+      "content": "Add search input to Navbar with onSearch callback",
+      "id": "navbar-search",
+      "status": "in_progress"
+    },
+    {
+      "content": "Create SearchResults.jsx panel showing matching docs with highlighted snippets",
+      "id": "search-results",
+      "status": "pending"
+    },
+    {
+      "content": "Enhance DocumentViewer to accept searchPage/searchQuery and jump to matching PDF page",
+      "id": "viewer-highlight",
+      "status": "pending"
+    },
+    {
+      "content": "Wire search state, API call, and result selection in Home.jsx",
+      "id": "home-wiring",
+      "status": "pending"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+All done. Here's what was implemented:
+
+**Backend** ([backend/app/documents.py](backend/app/documents.py)):
+- New `GET /api/documents/search?q=<term>` endpoint that iterates the user's documents
+- PDFs are opened with PyMuPDF and each page is searched with `page.search_for(query)`. Matching pages return a page number and a text snippet (the query surrounded by ~60 characters of context)
+- Audio/video files are matched by filename only (case-insensitive substring)
+- Returns a JSON array with `doc_id`, `original_name`, `file_type`, `has_thumbnail`, and a `matches` array
+
+**Navbar** ([frontend/src/components/Navbar.jsx](frontend/src/components/Navbar.jsx)):
+- Search input with a magnifying glass icon, positioned between the "Lattice" title and the action buttons
+- Fires `onSearch(query)` on Enter, clears on Escape
+
+**SearchResults** ([frontend/src/components/SearchResults.jsx](frontend/src/components/SearchResults.jsx)) -- new file:
+- Overlay panel below the navbar showing matching documents
+- Each result shows a file type icon, document name, page badge, and a snippet with the query term highlighted using a `<mark>` tag in the gem accent color
+- Clicking a result opens the document viewer at the matching page
+
+**DocumentViewer** ([frontend/src/components/DocumentViewer.jsx](frontend/src/components/DocumentViewer.jsx)):
+- Accepts optional `searchQuery` and `searchPage` props
+- For PDFs, appends `#page=N` to the iframe URL so browsers jump directly to the matching page
+- Shows a "Match on page N" pill badge in the header
+
+**Home** ([frontend/src/pages/Home.jsx](frontend/src/pages/Home.jsx)):
+- Manages `searchResults`, `searchQuery`, and `searchPage` state
+- Wires the search callback to the Navbar, results panel, and viewer
+
+---
+
+_**User**_
+
+can you restart the frontend and backend so i can test these out
+
+---
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: lsof -i :5001 -t 2>/dev/null | xargs kill -9 2>/dev/null; lsof -i :5173 -t 2>/dev/null | xargs kill -9 2>/dev/null; lsof -i :5174 -t 2>/dev/null | xargs kill -9 2>/dev/null; sleep 1; echo "all killed"</summary>
+
+```bash
+lsof -i :5001 -t 2>/dev/null | xargs kill -9 2>/dev/null; lsof -i :5173 -t 2>/dev/null | xargs kill -9 2>/dev/null; lsof -i :5174 -t 2>/dev/null | xargs kill -9 2>/dev/null; sleep 1; echo "all killed"
+```
+
+```
+all killed
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend && source venv/bin/activate && python run.py</summary>
+
+```bash
+cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend && source venv/bin/activate && python run.py
+```
+
+```
+ * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 342-700-901
+]633;C * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 342-700-901
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend && npm run dev</summary>
+
+```bash
+cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend && npm run dev
+```
+
+```
+npm warn Unknown env config "devdir". This will stop working in the next major version of npm.
+
+&gt; frontend@0.0.0 dev
+&gt; vite
+
+
+  VITE v8.0.8  ready in 202 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+]633;Cnpm warn Unknown env config "devdir". This will stop working in the next major version of npm.
+
+&gt; frontend@0.0.0 dev
+&gt; vite
+
+
+  VITE v8.0.8  ready in 202 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Both servers are up:
+
+- **Backend**: http://localhost:5001
+- **Frontend**: http://localhost:5173
+
+Go ahead and test it out. Upload a PDF, then type a search term in the search bar and press Enter.
