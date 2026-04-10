@@ -30,6 +30,22 @@ def _generate_thumbnail(filepath, file_type, thumb_folder):
     thumb_path = os.path.join(thumb_folder, thumb_name)
 
     if file_type == "pdf":
+        # Try PyMuPDF first (no system dependency)
+        try:
+            import fitz
+
+            doc = fitz.open(filepath)
+            page = doc[0]
+            mat = fitz.Matrix(2.0, 2.0)
+            pix = page.get_pixmap(matrix=mat, alpha=False)
+            pix.save(thumb_path)
+            doc.close()
+            if os.path.exists(thumb_path):
+                return thumb_name
+        except Exception:
+            pass
+
+        # Fallback to pdf2image (needs poppler)
         try:
             from pdf2image import convert_from_path
 
@@ -57,7 +73,6 @@ def _generate_thumbnail(filepath, file_type, thumb_folder):
         except Exception:
             return None
 
-    # Audio files get no generated thumbnail; frontend uses a placeholder
     return None
 
 

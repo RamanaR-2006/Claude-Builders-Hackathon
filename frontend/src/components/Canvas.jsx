@@ -4,7 +4,7 @@ import DocumentNode from './DocumentNode';
 import ConnectionLine from './ConnectionLine';
 import ConnectionModal from './ConnectionModal';
 
-export default function Canvas({ docs, setDocs, connections, setConnections, connectMode, setConnectMode }) {
+export default function Canvas({ docs, setDocs, connections, setConnections, connectMode, setConnectMode, onViewDoc }) {
   const [connectFirst, setConnectFirst] = useState(null);
   const [activeConn, setActiveConn] = useState(null);
   const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
@@ -41,6 +41,18 @@ export default function Canvas({ docs, setDocs, connections, setConnections, con
       setConnectFirst(null);
       return;
     }
+
+    // Frontend guard: check if connection already exists in either direction
+    const alreadyExists = connections.some(
+      c => (c.source_doc_id === connectFirst && c.target_doc_id === id) ||
+           (c.source_doc_id === id && c.target_doc_id === connectFirst)
+    );
+    if (alreadyExists) {
+      setConnectFirst(null);
+      setConnectMode(false);
+      return;
+    }
+
     try {
       const res = await api.post('/connections', {
         source_doc_id: connectFirst,
@@ -48,11 +60,11 @@ export default function Canvas({ docs, setDocs, connections, setConnections, con
       });
       setConnections(prev => [...prev, res.data]);
     } catch {
-      // connection may already exist
+      // backend 409 if duplicate slipped through
     }
     setConnectFirst(null);
     setConnectMode(false);
-  }, [connectMode, connectFirst, setConnections, setConnectMode]);
+  }, [connectMode, connectFirst, connections, setConnections, setConnectMode]);
 
   const handleLineClick = (conn) => {
     const src = docs.find(d => d.id === conn.source_doc_id);
@@ -87,16 +99,24 @@ export default function Canvas({ docs, setDocs, connections, setConnections, con
     setActiveConn(null);
   };
 
-  // Compute canvas size to fit all docs
   const maxX = docs.reduce((m, d) => Math.max(m, d.position_x + 200), 1200);
   const maxY = docs.reduce((m, d) => Math.max(m, d.position_y + 200), 800);
 
   return (
     <div
       ref={canvasRef}
-      className="relative flex-1 overflow-auto bg-[#f8f9fb]"
+      className="relative flex-1 overflow-auto bg-surface-900"
       onClick={handleCanvasClick}
     >
+      {/* Subtle grid pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage: 'radial-gradient(circle, #a78bfa 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+        }}
+      />
+
       <div className="relative" style={{ minWidth: maxX, minHeight: maxY }}>
         {/* SVG layer for connections */}
         <svg
@@ -126,6 +146,7 @@ export default function Canvas({ docs, setDocs, connections, setConnections, con
             onToggleLock={handleToggleLock}
             onDelete={handleDelete}
             onClick={handleNodeClick}
+            onView={onViewDoc}
           />
         ))}
 
@@ -145,8 +166,8 @@ export default function Canvas({ docs, setDocs, connections, setConnections, con
         {docs.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <p className="text-gray-300 text-lg font-medium">No documents yet</p>
-              <p className="text-gray-300 text-sm mt-1">Click Upload to get started</p>
+              <p className="text-gray-600 text-lg font-medium">No documents yet</p>
+              <p className="text-gray-600 text-sm mt-1">Click Upload to get started</p>
             </div>
           </div>
         )}

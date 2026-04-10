@@ -23,40 +23,40 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-white px-4">
+    <div className="min-h-screen flex items-center justify-center bg-surface-900 px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Lattice</h1>
-          <p className="mt-1 text-sm text-gray-500">Sign in to your workspace</p>
+          <h1 className="text-3xl font-bold tracking-tight text-white">Lattice</h1>
+          <p className="mt-1 text-sm text-gray-400">Sign in to your workspace</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-5">
+        <form onSubmit={handleSubmit} className="bg-surface-800 rounded-2xl border border-surface-600 p-8 space-y-5 shadow-lg shadow-black/30">
           {error && (
-            <div className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-2.5">{error}</div>
+            <div className="text-sm text-ruby-400 bg-ruby-500/10 border border-ruby-500/20 rounded-lg px-4 py-2.5">{error}</div>
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1.5">Email</label>
             <input
               id="email"
               type="email"
               required
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition"
+              className="w-full rounded-lg border border-surface-500 bg-surface-700 px-3.5 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-gem-500 focus:ring-2 focus:ring-gem-500/20 transition"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1.5">Password</label>
             <input
               id="password"
               type="password"
               required
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition"
+              className="w-full rounded-lg border border-surface-500 bg-surface-700 px-3.5 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-gem-500 focus:ring-2 focus:ring-gem-500/20 transition"
               placeholder="••••••••"
             />
           </div>
@@ -64,14 +64,14 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg px-4 py-2.5 text-sm transition disabled:opacity-50 cursor-pointer"
+            className="w-full bg-gem-600 hover:bg-gem-500 text-white font-medium rounded-lg px-4 py-2.5 text-sm transition disabled:opacity-50 cursor-pointer"
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
 
           <p className="text-center text-sm text-gray-500">
             Don&apos;t have an account?{' '}
-            <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">Register</Link>
+            <Link to="/register" className="text-gem-400 hover:text-gem-400/80 font-medium">Register</Link>
           </p>
         </form>
       </div>

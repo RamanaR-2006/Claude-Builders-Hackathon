@@ -14,13 +14,24 @@ export default function ConnectionLine({ conn, docs, onClick }) {
   const midX = (x1 + x2) / 2;
   const midY = (y1 + y2) / 2;
 
+  const hasDesc = !!conn.description;
+
   return (
     <g className="cursor-pointer" onClick={(e) => { e.stopPropagation(); onClick(conn); }}>
+      {/* Glow effect */}
       <line
         x1={x1} y1={y1} x2={x2} y2={y2}
-        stroke="#c7d2fe"
-        strokeWidth={2.5}
+        stroke={hasDesc ? '#8b5cf6' : '#22d3ee'}
+        strokeWidth={6}
         strokeLinecap="round"
+        opacity={0.15}
+      />
+      <line
+        x1={x1} y1={y1} x2={x2} y2={y2}
+        stroke={hasDesc ? '#a78bfa' : '#22d3ee'}
+        strokeWidth={2}
+        strokeLinecap="round"
+        opacity={0.7}
       />
       {/* Invisible wider hit area */}
       <line
@@ -28,11 +39,14 @@ export default function ConnectionLine({ conn, docs, onClick }) {
         stroke="transparent"
         strokeWidth={14}
       />
-      {/* Small dot at midpoint */}
-      <circle cx={midX} cy={midY} r={5} fill="#818cf8" />
-      {conn.description && (
-        <circle cx={midX} cy={midY} r={5} fill="#4f46e5" />
-      )}
+      {/* Midpoint diamond */}
+      <rect
+        x={midX - 5} y={midY - 5}
+        width={10} height={10}
+        rx={2}
+        fill={hasDesc ? '#8b5cf6' : '#06b6d4'}
+        transform={`rotate(45 ${midX} ${midY})`}
+      />
     </g>
   );
 }

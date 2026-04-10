@@ -20,21 +20,21 @@ export default function ConnectionModal({ conn, docs, position, onSave, onDelete
 
   return (
     <div
-      className="absolute z-[60] w-72 bg-white rounded-xl shadow-xl border border-gray-200 p-4"
+      className="absolute z-[60] w-72 bg-surface-800 rounded-xl shadow-xl shadow-black/40 border border-surface-500 p-4"
       style={{ left: position.x - 144, top: position.y + 12 }}
       onClick={e => e.stopPropagation()}
     >
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Connection</h3>
-        <button onClick={onClose} className="p-0.5 text-gray-400 hover:text-gray-600 cursor-pointer">
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Connection</h3>
+        <button onClick={onClose} className="p-0.5 text-gray-500 hover:text-gray-300 cursor-pointer">
           <X size={14} />
         </button>
       </div>
 
-      <p className="text-xs text-gray-400 mb-2 truncate">
-        <span className="font-medium text-gray-600">{srcName}</span>
+      <p className="text-xs text-gray-500 mb-2 truncate">
+        <span className="font-medium text-gray-300">{srcName}</span>
         {' → '}
-        <span className="font-medium text-gray-600">{tgtName}</span>
+        <span className="font-medium text-gray-300">{tgtName}</span>
       </p>
 
       <textarea
@@ -42,19 +42,19 @@ export default function ConnectionModal({ conn, docs, position, onSave, onDelete
         value={desc}
         onChange={e => setDesc(e.target.value)}
         placeholder="Describe this connection…"
-        className="w-full h-24 text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 resize-none transition"
+        className="w-full h-24 text-sm border border-surface-500 bg-surface-700 text-white placeholder-gray-500 rounded-lg px-3 py-2 outline-none focus:border-gem-500 focus:ring-2 focus:ring-gem-500/20 resize-none transition"
       />
 
       <div className="flex items-center justify-between mt-3">
         <button
           onClick={() => { onDelete(conn.id); onClose(); }}
-          className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition cursor-pointer"
+          className="flex items-center gap-1 text-xs text-gray-500 hover:text-ruby-400 transition cursor-pointer"
         >
           <Trash2 size={13} /> Remove
         </button>
         <button
           onClick={handleSave}
-          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition cursor-pointer"
+          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gem-600 hover:bg-gem-500 text-white transition cursor-pointer"
         >
           Save
         </button>

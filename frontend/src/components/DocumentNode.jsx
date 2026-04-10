@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react';
-import { FileText, Film, Music, Lock, Unlock, Trash2 } from 'lucide-react';
+import { FileText, Film, Music, Lock, Unlock, Trash2, Eye } from 'lucide-react';
 
 const TYPE_ICONS = {
   pdf: FileText,
@@ -8,8 +8,8 @@ const TYPE_ICONS = {
 };
 
 const TYPE_COLORS = {
-  pdf: 'text-red-400',
-  video: 'text-violet-400',
+  pdf: 'text-ruby-400',
+  video: 'text-gem-400',
   audio: 'text-emerald-400',
 };
 
@@ -21,6 +21,7 @@ export default function DocumentNode({
   onToggleLock,
   onDelete,
   onClick,
+  onView,
 }) {
   const nodeRef = useRef(null);
   const [dragging, setDragging] = useState(false);
@@ -89,14 +90,14 @@ export default function DocumentNode({
       }}
     >
       <div
-        className={`rounded-xl bg-white border transition-shadow overflow-hidden ${
+        className={`rounded-xl border transition-all overflow-hidden ${
           selected
-            ? 'border-primary-400 shadow-lg ring-2 ring-primary-200'
-            : 'border-gray-200 shadow-sm hover:shadow-md'
+            ? 'bg-surface-700 border-cyan-500 shadow-lg shadow-cyan-500/20 ring-2 ring-cyan-500/30'
+            : 'bg-surface-800 border-surface-600 shadow-md shadow-black/30 hover:border-surface-500 hover:shadow-lg hover:shadow-black/40'
         }`}
       >
         {/* Thumbnail area */}
-        <div className="h-24 bg-gray-50 flex items-center justify-center overflow-hidden">
+        <div className="h-24 bg-surface-700 flex items-center justify-center overflow-hidden">
           {thumbnailUrl ? (
             <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
           ) : (
@@ -105,29 +106,46 @@ export default function DocumentNode({
         </div>
 
         {/* Label */}
-        <div className="px-3 py-2 border-t border-gray-100">
-          <p className="text-xs font-medium text-gray-700 truncate" title={doc.original_name}>
+        <div className="px-3 py-2 border-t border-surface-600">
+          <p className="text-xs font-medium text-gray-300 truncate" title={doc.original_name}>
             {doc.original_name}
           </p>
         </div>
 
-        {/* Actions – visible on hover */}
+        {/* Actions – visible on hover. onPointerDown stops drag from starting on buttons */}
         <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
+            onPointerDown={e => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onView(doc); }}
+            className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-gem-400 cursor-pointer"
+            title="View"
+          >
+            <Eye size={13} />
+          </button>
+          <button
+            onPointerDown={e => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onToggleLock(doc.id); }}
-            className="p-1 rounded-md bg-white/80 backdrop-blur border border-gray-200 text-gray-500 hover:text-gray-700 cursor-pointer"
+            className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-cyan-400 cursor-pointer"
             title={doc.is_locked ? 'Unlock' : 'Lock'}
           >
             {doc.is_locked ? <Lock size={13} /> : <Unlock size={13} />}
           </button>
           <button
+            onPointerDown={e => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onDelete(doc.id); }}
-            className="p-1 rounded-md bg-white/80 backdrop-blur border border-gray-200 text-gray-500 hover:text-red-600 cursor-pointer"
+            className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-ruby-400 cursor-pointer"
             title="Delete"
           >
             <Trash2 size={13} />
           </button>
         </div>
+
+        {/* Lock indicator */}
+        {doc.is_locked && (
+          <div className="absolute top-1.5 left-1.5">
+            <Lock size={11} className="text-cyan-400" />
+          </div>
+        )}
       </div>
     </div>
   );
