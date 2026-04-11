@@ -7,7 +7,7 @@ import uuid
 from flask import Blueprint, current_app, jsonify, request, send_file
 from flask_login import current_user, login_required
 
-from .models import Connection, Document, db
+from .models import Connection, Document, Highlight, db
 
 documents_bp = Blueprint("documents", __name__)
 
@@ -32,7 +32,6 @@ def _generate_thumbnail(filepath, file_type, thumb_folder):
     thumb_path = os.path.join(thumb_folder, thumb_name)
 
     if file_type == "pdf":
-        # Try PyMuPDF first (no system dependency)
         try:
             import fitz
 
@@ -47,7 +46,6 @@ def _generate_thumbnail(filepath, file_type, thumb_folder):
         except Exception:
             pass
 
-        # Fallback to pdf2image (needs poppler)
         try:
             from pdf2image import convert_from_path
 
@@ -78,6 +76,17 @@ def _generate_thumbnail(filepath, file_type, thumb_folder):
     return None
 
 
+def _hex_to_rgb(hex_color):
+    """Convert '#rrggbb' to (r, g, b) floats in 0..1."""
+    hex_color = hex_color.lstrip("#")
+    if len(hex_color) != 6:
+        return (0.976, 0.573, 0.235)
+    r = int(hex_color[0:2], 16) / 255.0
+    g = int(hex_color[2:4], 16) / 255.0
+    b = int(hex_color[4:6], 16) / 255.0
+    return (r, g, b)
+
+
 @documents_bp.route("/upload", methods=["POST"])
 @login_required
 def upload():
@@ -101,7 +110,6 @@ def upload():
         filepath, file_type, current_app.config["THUMBNAIL_FOLDER"]
     )
 
-    # Place new documents in a staggered grid position
     count = Document.query.filter_by(user_id=current_user.id).count()
     col = count % 4
     row = count // 4
@@ -136,13 +144,11 @@ def delete_document(doc_id):
     if not doc:
         return {"error": "Document not found"}, 404
 
-    # Remove related connections
     Connection.query.filter(
         Connection.user_id == current_user.id,
         (Connection.source_doc_id == doc_id) | (Connection.target_doc_id == doc_id),
     ).delete(synchronize_session="fetch")
 
-    # Remove files from disk
     upload_path = os.path.join(current_app.config["UPLOAD_FOLDER"], doc.filename)
     if os.path.exists(upload_path):
         os.remove(upload_path)
@@ -167,31 +173,48 @@ def serve_file(doc_id):
     if not os.path.exists(filepath):
         return {"error": "File missing from disk"}, 404
 
-    highlight = request.args.get("highlight", "").strip()
-    if highlight and doc.file_type == "pdf":
-        try:
-            import fitz
+    if doc.file_type != "pdf":
+        return send_file(filepath, download_name=doc.original_name)
 
-            pdf = fitz.open(filepath)
-            for page in pdf:
-                rects = page.search_for(highlight)
+    # Collect highlight terms: saved highlights + query params
+    terms = []
+
+    # Multi-highlight param: ?highlights=term1:color1,term2:color2
+    highlights_param = request.args.get("highlights", "").strip()
+    if highlights_param:
+        for pair in highlights_param.split(","):
+            if ":" in pair:
+                term, color = pair.rsplit(":", 1)
+                term = term.strip()
+                if term:
+                    terms.append((term, _hex_to_rgb(color.strip())))
+
+    # Legacy single-highlight param from search
+    legacy_hl = request.args.get("highlight", "").strip()
+    if legacy_hl:
+        terms.append((legacy_hl, (0.976, 0.573, 0.235)))
+
+    if not terms:
+        return send_file(filepath, download_name=doc.original_name)
+
+    try:
+        import fitz
+
+        pdf = fitz.open(filepath)
+        for page in pdf:
+            for term, rgb in terms:
+                rects = page.search_for(term)
                 for rect in rects:
                     annot = page.add_highlight_annot(rect)
-                    annot.set_colors(stroke=(0.976, 0.573, 0.235))  # lava orange
+                    annot.set_colors(stroke=rgb)
                     annot.update()
-            buf = io.BytesIO()
-            pdf.save(buf)
-            pdf.close()
-            buf.seek(0)
-            return send_file(
-                buf,
-                mimetype="application/pdf",
-                download_name=doc.original_name,
-            )
-        except Exception:
-            pass
-
-    return send_file(filepath, download_name=doc.original_name)
+        buf = io.BytesIO()
+        pdf.save(buf)
+        pdf.close()
+        buf.seek(0)
+        return send_file(buf, mimetype="application/pdf", download_name=doc.original_name)
+    except Exception:
+        return send_file(filepath, download_name=doc.original_name)
 
 
 @documents_bp.route("/<int:doc_id>/thumbnail", methods=["GET"])
@@ -209,6 +232,51 @@ def serve_thumbnail(doc_id):
         return {"error": "Thumbnail file missing"}, 404
 
     return send_file(thumb_path, mimetype="image/png")
+
+
+# --- Highlight CRUD ---
+
+@documents_bp.route("/<int:doc_id>/highlights", methods=["GET"])
+@login_required
+def list_highlights(doc_id):
+    doc = Document.query.filter_by(id=doc_id, user_id=current_user.id).first()
+    if not doc:
+        return {"error": "Document not found"}, 404
+    highlights = Highlight.query.filter_by(user_id=current_user.id, doc_id=doc_id).all()
+    return jsonify([h.to_dict() for h in highlights]), 200
+
+
+@documents_bp.route("/<int:doc_id>/highlights", methods=["POST"])
+@login_required
+def create_highlight(doc_id):
+    doc = Document.query.filter_by(id=doc_id, user_id=current_user.id).first()
+    if not doc:
+        return {"error": "Document not found"}, 404
+
+    data = request.get_json()
+    term = (data.get("term") or "").strip()
+    color = (data.get("color") or "#fb923c").strip()
+
+    if not term:
+        return {"error": "Term is required"}, 400
+    if len(color) != 7 or not color.startswith("#"):
+        color = "#fb923c"
+
+    hl = Highlight(user_id=current_user.id, doc_id=doc_id, term=term, color=color)
+    db.session.add(hl)
+    db.session.commit()
+    return hl.to_dict(), 201
+
+
+@documents_bp.route("/<int:doc_id>/highlights/<int:hl_id>", methods=["DELETE"])
+@login_required
+def delete_highlight(doc_id, hl_id):
+    hl = Highlight.query.filter_by(id=hl_id, user_id=current_user.id, doc_id=doc_id).first()
+    if not hl:
+        return {"error": "Highlight not found"}, 404
+    db.session.delete(hl)
+    db.session.commit()
+    return {"message": "Highlight removed"}, 200
 
 
 def _extract_snippet(page_text, query, context_chars=60):
@@ -262,7 +330,6 @@ def search_documents():
                 except Exception:
                     pass
 
-        # Always check filename for all file types
         if not matches and query.lower() in doc.original_name.lower():
             matches.append({"page": None, "snippet": None})
 

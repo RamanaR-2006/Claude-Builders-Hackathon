@@ -7,7 +7,7 @@ import ConnectionModal from './ConnectionModal';
 export default function Canvas({
   docs, setDocs, connections, setConnections,
   connectMode, setConnectMode, onViewDoc,
-  selectMode, selectedIds, onToggleSelect,
+  selectMode, selectedIds, anchorIds, onToggleSelect, onToggleAnchor,
   animating, newConnIds, onToast,
 }) {
   const [connectFirst, setConnectFirst] = useState(null);
@@ -158,6 +158,7 @@ export default function Canvas({
             connectMode={connectMode}
             selectMode={selectMode}
             isSelected={selectedIds?.has(doc.id)}
+            isAnchor={anchorIds?.has(doc.id)}
             animating={animating}
             onPositionChange={handlePositionChange}
             onToggleLock={handleToggleLock}
@@ -165,6 +166,7 @@ export default function Canvas({
             onClick={handleNodeClick}
             onView={onViewDoc}
             onToggleSelect={onToggleSelect}
+            onToggleAnchor={onToggleAnchor}
           />
         ))}
 

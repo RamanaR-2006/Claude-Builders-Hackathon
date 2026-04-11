@@ -19,7 +19,6 @@ CELL_H = NODE_H + NODE_PAD
 
 
 def _extract_text(doc, upload_dir):
-    """Extract searchable text from a document."""
     if doc.file_type == "pdf":
         filepath = os.path.join(upload_dir, doc.filename)
         if not os.path.exists(filepath):
@@ -42,7 +41,6 @@ def _extract_text(doc, upload_dir):
 
 
 def _find_clusters(doc_ids, connections):
-    """Find connected components among doc_ids given connections."""
     adj = {d: set() for d in doc_ids}
     id_set = set(doc_ids)
     for c in connections:
@@ -72,7 +70,6 @@ def _find_clusters(doc_ids, connections):
 
 
 def _layout_cluster_circle(ids, cx, cy):
-    """Lay out a cluster of doc IDs in a circle centered at (cx, cy)."""
     n = len(ids)
     if n == 1:
         return {str(ids[0]): {"x": round(cx), "y": round(cy)}}
@@ -90,7 +87,6 @@ def _layout_cluster_circle(ids, cx, cy):
 
 
 def _compute_smart_layout(all_doc_ids, connections, start_x=120, start_y=120):
-    """Lay out documents with no overlaps. Connected clusters form circles, arranged in a grid of clusters."""
     clusters = _find_clusters(all_doc_ids, connections)
 
     positions = {}
@@ -124,7 +120,6 @@ def _compute_smart_layout(all_doc_ids, connections, start_x=120, start_y=120):
         cursor_x += bbox_w + NODE_PAD
         row_height = max(row_height, bbox_h)
 
-    # Ensure no position is negative
     min_x = min((p["x"] for p in positions.values()), default=0)
     min_y = min((p["y"] for p in positions.values()), default=0)
     if min_x < 40 or min_y < 40:
@@ -154,6 +149,9 @@ def autolink():
 
     data = request.get_json()
     doc_ids = data.get("doc_ids", [])
+    anchor_ids = set(data.get("anchor_ids", []))
+    guidance = (data.get("guidance") or "").strip()
+
     if len(doc_ids) < 2:
         return {"error": "At least 2 documents are required"}, 400
 
@@ -170,9 +168,35 @@ def autolink():
     doc_summaries = []
     for doc in docs:
         text = _extract_text(doc, upload_dir)
-        doc_summaries.append(f'[Doc ID: {doc.id}] "{doc.original_name}"\n{text}')
+        anchor_tag = " [ANCHOR]" if doc.id in anchor_ids else ""
+        doc_summaries.append(f'[Doc ID: {doc.id}]{anchor_tag} "{doc.original_name}"\n{text}')
 
     prompt_body = "\n\n---\n\n".join(doc_summaries)
+
+    # Build system prompt
+    system_parts = [
+        "You analyze documents and identify meaningful connections between them. "
+        "Given summaries of documents, identify which pairs are related and why. "
+        "Return ONLY valid JSON with this exact structure: "
+        '{"connections": [{"source_id": <int>, "target_id": <int>, "description": "<1-2 sentence reason>", "strength": <float 1-10>}]}. '
+        "The strength field indicates how strong the connection is: 1 = tenuous/weak, 5 = moderate, 10 = very strong. "
+        "Only connect documents that have a genuine thematic, topical, or contextual relationship. "
+        "Do not connect every document to every other. Be selective and meaningful."
+    ]
+
+    if anchor_ids:
+        system_parts.append(
+            " Documents marked [ANCHOR] are central reference points. "
+            "Prioritize connecting other documents TO these anchors. "
+            "Non-anchor connections are still allowed if the relationship is strong."
+        )
+
+    system_prompt = "".join(system_parts)
+
+    # Build user message
+    user_msg = f"Analyze these {len(docs)} documents and identify connections:\n\n{prompt_body}"
+    if guidance:
+        user_msg += f"\n\nFocus connections on the following theme or criteria: {guidance}"
 
     try:
         import anthropic
@@ -181,18 +205,8 @@ def autolink():
         message = client.messages.create(
             model="claude-sonnet-4-20250514",
             max_tokens=2048,
-            system=(
-                "You analyze documents and identify meaningful connections between them. "
-                "Given summaries of documents, identify which pairs are related and why. "
-                "Return ONLY valid JSON with this exact structure: "
-                '{"connections": [{"source_id": <int>, "target_id": <int>, "description": "<1-2 sentence reason>"}]}. '
-                "Only connect documents that have a genuine thematic, topical, or contextual relationship. "
-                "Do not connect every document to every other. Be selective and meaningful."
-            ),
-            messages=[{
-                "role": "user",
-                "content": f"Analyze these {len(docs)} documents and identify connections:\n\n{prompt_body}",
-            }],
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_msg}],
         )
 
         response_text = message.content[0].text.strip()
@@ -215,6 +229,7 @@ def autolink():
         src_id = conn_data.get("source_id")
         tgt_id = conn_data.get("target_id")
         desc = conn_data.get("description", "")
+        strength = conn_data.get("strength")
 
         if src_id not in valid_ids or tgt_id not in valid_ids:
             continue
@@ -223,17 +238,24 @@ def autolink():
         if _connection_exists(current_user.id, src_id, tgt_id):
             continue
 
+        # Clamp strength to 1-10
+        if strength is not None:
+            try:
+                strength = max(1.0, min(10.0, float(strength)))
+            except (ValueError, TypeError):
+                strength = None
+
         conn = Connection(
             user_id=current_user.id,
             source_doc_id=src_id,
             target_doc_id=tgt_id,
             description=desc,
+            strength=strength,
         )
         db.session.add(conn)
         db.session.flush()
         created_connections.append(conn.to_dict())
 
-    # Compute layout for ALL user documents using ALL connections
     all_docs = Document.query.filter_by(user_id=current_user.id).all()
     all_doc_ids = [d.id for d in all_docs]
     all_connections = Connection.query.filter_by(user_id=current_user.id).all()
@@ -257,7 +279,6 @@ def autolink():
 @autolink_bp.route("/organize", methods=["POST"])
 @login_required
 def organize():
-    """Reorganize all documents on the canvas with no overlapping thumbnails."""
     all_docs = Document.query.filter_by(user_id=current_user.id).all()
     if not all_docs:
         return {"positions": {}}, 200

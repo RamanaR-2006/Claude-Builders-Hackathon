@@ -36,6 +36,7 @@ export default function Home() {
 
   const [selectMode, setSelectMode] = useState(false);
   const [selectedDocIds, setSelectedDocIds] = useState(new Set());
+  const [anchorDocIds, setAnchorDocIds] = useState(new Set());
   const [autoLinking, setAutoLinking] = useState(false);
   const [animating, setAnimating] = useState(false);
   const [newConnIds, setNewConnIds] = useState(new Set());
@@ -100,11 +101,13 @@ export default function Home() {
     if (selectMode) {
       setSelectMode(false);
       setSelectedDocIds(new Set());
+      setAnchorDocIds(new Set());
       setAutoLinking(false);
     } else {
       setConnectMode(false);
       setSelectMode(true);
       setSelectedDocIds(new Set());
+      setAnchorDocIds(new Set());
     }
   };
 
@@ -113,6 +116,7 @@ export default function Home() {
       const next = new Set(prev);
       if (next.has(docId)) {
         next.delete(docId);
+        setAnchorDocIds(a => { const n = new Set(a); n.delete(docId); return n; });
       } else {
         next.add(docId);
       }
@@ -120,17 +124,28 @@ export default function Home() {
     });
   }, []);
 
-  const handleAutoLinkAnalyze = async () => {
+  const handleToggleAnchor = useCallback((docId) => {
+    setAnchorDocIds(prev => {
+      const next = new Set(prev);
+      if (next.has(docId)) next.delete(docId);
+      else next.add(docId);
+      return next;
+    });
+  }, []);
+
+  const handleAutoLinkAnalyze = async (guidance) => {
     if (selectedDocIds.size < 2) return;
     setAutoLinking(true);
 
     try {
-      const res = await api.post('/autolink', { doc_ids: Array.from(selectedDocIds) });
+      const res = await api.post('/autolink', {
+        doc_ids: Array.from(selectedDocIds),
+        anchor_ids: Array.from(anchorDocIds),
+        guidance: guidance || '',
+      });
       const { connections: newConns, positions } = res.data;
 
       setAnimating(true);
-
-      // Apply positions for ALL docs (backend returns positions for every doc)
       setDocs(prev => applyPositions(prev, positions));
 
       const connIdsToAnimate = new Set();
@@ -146,6 +161,7 @@ export default function Home() {
       setAnimating(false);
       setSelectMode(false);
       setSelectedDocIds(new Set());
+      setAnchorDocIds(new Set());
       setNewConnIds(new Set());
 
       if (newConns.length > 0) {
@@ -223,13 +239,15 @@ export default function Home() {
         onViewDoc={setViewingDoc}
         selectMode={selectMode}
         selectedIds={selectedDocIds}
+        anchorIds={anchorDocIds}
         onToggleSelect={handleToggleSelect}
+        onToggleAnchor={handleToggleAnchor}
         animating={animating}
         newConnIds={newConnIds}
         onToast={addToast}
       />
 
-      {/* Floating action buttons - bottom-right */}
+      {/* Floating action buttons */}
       {!selectMode && (
         <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3">
           <button
@@ -256,6 +274,7 @@ export default function Home() {
       {selectMode && (
         <AutoLinkBar
           selectedCount={selectedDocIds.size}
+          anchorCount={anchorDocIds.size}
           onCancel={handleToggleAutoLink}
           onAnalyze={handleAutoLinkAnalyze}
           analyzing={autoLinking}
@@ -285,7 +304,6 @@ export default function Home() {
         />
       )}
 
-      {/* Toast notifications */}
       <div className="fixed bottom-6 left-6 z-[200] flex flex-col gap-2 pointer-events-none">
         {toasts.map(t => (
           <div key={t.id} className="pointer-events-auto">

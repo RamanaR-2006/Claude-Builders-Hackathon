@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react';
-import { FileText, Film, Music, Lock, Unlock, Trash2, Eye, Check } from 'lucide-react';
+import { FileText, Film, Music, Lock, Unlock, Trash2, Eye, Check, Anchor } from 'lucide-react';
 
 const TYPE_ICONS = {
   pdf: FileText,
@@ -19,6 +19,7 @@ export default function DocumentNode({
   connectMode,
   selectMode,
   isSelected,
+  isAnchor,
   animating,
   onPositionChange,
   onToggleLock,
@@ -26,6 +27,7 @@ export default function DocumentNode({
   onClick,
   onView,
   onToggleSelect,
+  onToggleAnchor,
 }) {
   const nodeRef = useRef(null);
   const [dragging, setDragging] = useState(false);
@@ -88,6 +90,12 @@ export default function DocumentNode({
     return 'grab';
   };
 
+  const getSelectionStyle = () => {
+    if (isAnchor) return 'bg-surface-700 border-ember-400 shadow-lg shadow-ember-400/20 ring-2 ring-ember-400/30';
+    if (isSelected) return 'bg-surface-700 border-lava-500 shadow-lg shadow-lava-500/20 ring-2 ring-lava-500/30 animate-pulse-lava';
+    return '';
+  };
+
   return (
     <div
       ref={nodeRef}
@@ -108,8 +116,8 @@ export default function DocumentNode({
     >
       <div
         className={`rounded-xl border transition-all overflow-hidden ${
-          isSelected
-            ? 'bg-surface-700 border-lava-500 shadow-lg shadow-lava-500/20 ring-2 ring-lava-500/30 animate-pulse-lava'
+          (isSelected || isAnchor)
+            ? getSelectionStyle()
             : selected
               ? 'bg-surface-700 border-molten-400 shadow-lg shadow-molten-400/20 ring-2 ring-molten-400/30'
               : 'bg-surface-800 border-surface-600 shadow-md shadow-black/30 hover:border-surface-500 hover:shadow-lg hover:shadow-black/40'
@@ -131,20 +139,40 @@ export default function DocumentNode({
           </p>
         </div>
 
-        {/* Selection checkbox */}
+        {/* Selection checkbox + anchor toggle */}
         {selectMode && (
-          <div className="absolute top-1.5 left-1.5">
-            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
-              isSelected
-                ? 'bg-lava-600 border-lava-500'
-                : 'bg-surface-800/80 border-surface-500'
-            }`}>
-              {isSelected && <Check size={12} className="text-white" />}
+          <>
+            <div className="absolute top-1.5 left-1.5">
+              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
+                isAnchor
+                  ? 'bg-ember-500 border-ember-400'
+                  : isSelected
+                    ? 'bg-lava-600 border-lava-500'
+                    : 'bg-surface-800/80 border-surface-500'
+              }`}>
+                {isAnchor ? <Anchor size={11} className="text-white" /> : isSelected ? <Check size={12} className="text-white" /> : null}
+              </div>
             </div>
-          </div>
+
+            {/* Anchor toggle button -- only visible when selected */}
+            {isSelected && (
+              <button
+                onPointerDown={e => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); onToggleAnchor(doc.id); }}
+                className={`absolute top-1.5 right-1.5 p-1 rounded-md border cursor-pointer transition ${
+                  isAnchor
+                    ? 'bg-ember-500/20 border-ember-400/50 text-ember-400'
+                    : 'bg-surface-800/80 border-surface-500 text-gray-500 hover:text-ember-400'
+                }`}
+                title={isAnchor ? 'Remove anchor' : 'Set as anchor'}
+              >
+                <Anchor size={12} />
+              </button>
+            )}
+          </>
         )}
 
-        {/* Actions – visible on hover, hidden in select mode */}
+        {/* Actions -- visible on hover, hidden in select mode */}
         {!selectMode && (
           <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button

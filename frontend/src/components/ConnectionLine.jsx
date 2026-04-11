@@ -14,6 +14,14 @@ const LINE_COLORS = [
   { glow: '#b91c1c', line: '#fca5a5', diamond: '#b91c1c' },
 ];
 
+function strengthToColor(strength) {
+  if (strength <= 2) return { glow: '#ef4444', line: '#f87171', diamond: '#ef4444' };
+  if (strength <= 4) return { glow: '#f97316', line: '#fb923c', diamond: '#f97316' };
+  if (strength <= 6) return { glow: '#eab308', line: '#fbbf24', diamond: '#eab308' };
+  if (strength <= 8) return { glow: '#84cc16', line: '#a3e635', diamond: '#84cc16' };
+  return { glow: '#22c55e', line: '#4ade80', diamond: '#22c55e' };
+}
+
 function truncate(str, max = 60) {
   if (!str) return '';
   return str.length > max ? str.slice(0, max) + '…' : str;
@@ -33,8 +41,12 @@ export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIn
   const midX = (x1 + x2) / 2;
   const midY = (y1 + y2) / 2;
 
-  const palette = LINE_COLORS[colorIndex % LINE_COLORS.length];
+  const hasStrength = conn.strength != null;
+  const palette = hasStrength ? strengthToColor(conn.strength) : LINE_COLORS[colorIndex % LINE_COLORS.length];
   const desc = conn.description || '';
+  const tooltipText = hasStrength
+    ? `${truncate(desc, 100)} (Strength: ${Number(conn.strength).toFixed(1)}/10)`
+    : truncate(desc, 120);
 
   return (
     <g className="cursor-pointer" onClick={(e) => { e.stopPropagation(); onClick(conn); }}>
@@ -63,8 +75,8 @@ export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIn
       />
       {/* Midpoint diamond with hover zone */}
       <rect
-        x={midX - 12} y={midY - 12}
-        width={24} height={24}
+        x={midX - 14} y={midY - 14}
+        width={28} height={28}
         fill="transparent"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -79,13 +91,28 @@ export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIn
         style={{ pointerEvents: 'none' }}
       />
 
+      {/* Strength score badge */}
+      {hasStrength && (
+        <text
+          x={midX}
+          y={midY + 18}
+          textAnchor="middle"
+          fontSize="9"
+          fontWeight="700"
+          fill={palette.diamond}
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
+        >
+          {Number(conn.strength).toFixed(1)}
+        </text>
+      )}
+
       {/* Tooltip on hover */}
       {hovered && desc && (
         <foreignObject
-          x={midX - 130}
-          y={midY - 48}
-          width={260}
-          height={40}
+          x={midX - 140}
+          y={midY - 52}
+          width={280}
+          height={46}
           style={{ pointerEvents: 'none', overflow: 'visible' }}
         >
           <div
@@ -100,11 +127,11 @@ export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIn
               lineHeight: '1.4',
               textAlign: 'center',
               boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-              maxWidth: '260px',
+              maxWidth: '280px',
               wordBreak: 'break-word',
             }}
           >
-            {truncate(desc, 120)}
+            {tooltipText}
           </div>
         </foreignObject>
       )}

@@ -16,6 +16,7 @@ class User(UserMixin, db.Model):
 
     documents = db.relationship("Document", backref="owner", lazy=True, cascade="all, delete-orphan")
     connections = db.relationship("Connection", backref="owner", lazy=True, cascade="all, delete-orphan")
+    highlights = db.relationship("Highlight", backref="owner", lazy=True, cascade="all, delete-orphan")
 
 
 class Document(db.Model):
@@ -25,12 +26,14 @@ class Document(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     filename = db.Column(db.String(255), nullable=False)
     original_name = db.Column(db.String(255), nullable=False)
-    file_type = db.Column(db.String(50), nullable=False)  # pdf, audio, video
+    file_type = db.Column(db.String(50), nullable=False)
     thumbnail_path = db.Column(db.String(255), nullable=True)
     uploaded_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     position_x = db.Column(db.Float, default=100.0)
     position_y = db.Column(db.Float, default=100.0)
     is_locked = db.Column(db.Boolean, default=False)
+
+    highlights = db.relationship("Highlight", backref="document", lazy=True, cascade="all, delete-orphan")
 
     def to_dict(self):
         return {
@@ -53,6 +56,7 @@ class Connection(db.Model):
     source_doc_id = db.Column(db.Integer, db.ForeignKey("documents.id"), nullable=False)
     target_doc_id = db.Column(db.Integer, db.ForeignKey("documents.id"), nullable=False)
     description = db.Column(db.Text, default="")
+    strength = db.Column(db.Float, nullable=True, default=None)
 
     source_doc = db.relationship("Document", foreign_keys=[source_doc_id])
     target_doc = db.relationship("Document", foreign_keys=[target_doc_id])
@@ -63,4 +67,23 @@ class Connection(db.Model):
             "source_doc_id": self.source_doc_id,
             "target_doc_id": self.target_doc_id,
             "description": self.description,
+            "strength": self.strength,
+        }
+
+
+class Highlight(db.Model):
+    __tablename__ = "highlights"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    doc_id = db.Column(db.Integer, db.ForeignKey("documents.id"), nullable=False)
+    term = db.Column(db.String(255), nullable=False)
+    color = db.Column(db.String(7), nullable=False, default="#fb923c")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "doc_id": self.doc_id,
+            "term": self.term,
+            "color": self.color,
         }
