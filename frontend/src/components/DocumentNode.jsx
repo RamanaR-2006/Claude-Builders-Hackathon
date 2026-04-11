@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react';
-import { FileText, Film, Music, Lock, Unlock, Trash2, Eye, Check, Anchor } from 'lucide-react';
+import { FileText, Film, Music, Lock, Unlock, Trash2, Eye, Check, Anchor, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const TYPE_ICONS = {
   pdf: FileText,
@@ -137,6 +137,19 @@ export default function DocumentNode({
           <p className="text-xs font-medium text-gray-300 truncate" title={doc.original_name}>
             {doc.original_name}
           </p>
+          {(doc.file_type === 'audio' || doc.file_type === 'video') && doc.transcription_status && doc.transcription_status !== 'na' && (
+            <div className="flex items-center gap-1 mt-0.5">
+              {doc.transcription_status === 'pending' && (
+                <><Loader2 size={9} className="text-ember-400 animate-spin" /><span className="text-[9px] text-ember-400">Transcribing…</span></>
+              )}
+              {doc.transcription_status === 'done' && (
+                <><CheckCircle2 size={9} className="text-green-500" /><span className="text-[9px] text-green-500">Transcribed</span></>
+              )}
+              {doc.transcription_status === 'failed' && (
+                <><AlertCircle size={9} className="text-magma-400" /><span className="text-[9px] text-magma-400">Transcription failed</span></>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Selection checkbox + anchor toggle */}

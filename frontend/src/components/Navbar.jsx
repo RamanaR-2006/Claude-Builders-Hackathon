@@ -19,7 +19,9 @@ export default function Navbar({ onSearch, searching, selectMode, onAutoLink, on
   return (
     <nav className="h-14 bg-surface-800 border-b border-surface-600 flex items-center justify-between px-5 shrink-0 z-50">
       <div className="flex items-center gap-4">
-        <h1 className="text-lg font-bold tracking-tight text-white">Lattice</h1>
+        <h1 className="text-lg font-bold tracking-tight">
+          <span className="lattice-logo">Lattice</span>
+        </h1>
 
         <button
           onClick={onToggleSidebar}

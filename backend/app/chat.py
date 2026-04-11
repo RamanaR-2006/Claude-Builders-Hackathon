@@ -49,19 +49,24 @@ def chat():
 
     docs_context = "\n\n---\n\n".join(doc_summaries)
 
+    valid_doc_ids = [doc.id for doc in docs[:MAX_DOCS_IN_CONTEXT]]
+
     system_prompt = (
         "You are a knowledgeable research assistant. The user has uploaded documents, "
-        "and you should use their contents to answer questions accurately.\n\n"
-        "When referencing specific content from a document, include inline citations using "
-        "this exact format: [DOC:document_id:page_number:\"exact quote\"]. "
-        "The page_number should be the page where the quote appears (use 1 if unknown). "
-        "The quote must be verbatim text copied exactly from the document — a complete sentence "
-        "or key statement, up to 300 characters. Prefer longer, self-contained excerpts that "
-        "capture the full claim or finding, not fragments. The quote will be used to locate and "
-        "highlight the passage in the original document, so it must match the source text exactly. "
-        "Include citations whenever you reference, paraphrase, or quote document content.\n\n"
-        "If the user asks for quotes, excerpts, or specific passages, provide them with "
-        "proper citations so they can locate them in the original documents.\n\n"
+        "and you must answer questions using ONLY the content provided below.\n\n"
+        "CITATION RULES — follow exactly:\n"
+        "1. Use this format: [DOC:document_id:page_number:\"exact quote\"]\n"
+        f"2. Only use these document IDs: {valid_doc_ids}. NEVER invent or guess an ID.\n"
+        "3. The quote must be copied verbatim from the [Page N] section of the document text. "
+        "Use the page number shown in the [Page N] label immediately before the quoted text. "
+        "Copy the text character-for-character including punctuation — do NOT paraphrase.\n"
+        "4. Keep quotes between 20 and 200 characters — long enough to be meaningful, "
+        "short enough to be exact.\n"
+        "5. If you cannot find a verbatim match in the provided text, OMIT the citation entirely "
+        "rather than guessing or approximating.\n"
+        "6. Only cite content you can directly see in the document text below.\n\n"
+        "Answer the user's question accurately and completely. When you cite, place the citation "
+        "marker immediately after the sentence that references that content.\n\n"
         f"Here are the user's documents:\n\n{docs_context}"
     )
 
@@ -69,6 +74,9 @@ def chat():
     for h in history[-20:]:
         role = h.get("role", "user")
         content = h.get("content", "")
+        if role == "assistant":
+            # Strip citation markers from history to avoid model confusing old IDs
+            content = re.sub(r'\[DOC:\d+:\d+:"[^"]*?"\]', '[cited]', content)
         if role in ("user", "assistant") and content:
             messages.append({"role": role, "content": content})
     messages.append({"role": "user", "content": user_message})

@@ -47,6 +47,13 @@ export default function DocumentViewer({ doc, searchQuery, searchPage, onClose }
     }
   }, [doc.id, doc.file_type]);
 
+  // Re-show search highlight whenever a new searchQuery arrives (e.g. from a new citation click)
+  useEffect(() => {
+    if (searchQuery) {
+      setShowSearch(true);
+    }
+  }, [searchQuery]);
+
   const buildPdfSrc = useCallback(() => {
     const pairs = highlights.map(h => `${encodeURIComponent(h.term)}:${h.color.replace('#', '')}`);
     if (showSearch && searchQuery) {

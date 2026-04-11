@@ -106,6 +106,47 @@ def _block_line_rects(page, match_rect):
     return []
 
 
+def _transcribe_media(filepath, file_type):
+    """Transcribe audio/video via OpenAI Whisper. Returns transcript string or None."""
+    import os
+    import tempfile
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        return None
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
+
+        audio_path = filepath
+        tmp_audio = None
+
+        # For video, extract audio track first using ffmpeg
+        if file_type == "video":
+            tmp_audio = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
+            tmp_audio.close()
+            result = subprocess.run(
+                ["ffmpeg", "-y", "-i", filepath, "-vn", "-acodec", "mp3", "-q:a", "4", tmp_audio.name],
+                capture_output=True, timeout=120,
+            )
+            if result.returncode != 0 or not os.path.exists(tmp_audio.name):
+                return None
+            audio_path = tmp_audio.name
+
+        with open(audio_path, "rb") as f:
+            response = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=f,
+                response_format="text",
+            )
+
+        if tmp_audio:
+            os.unlink(tmp_audio.name)
+
+        return response.strip() if isinstance(response, str) else str(response).strip()
+    except Exception:
+        return None
+
+
 @documents_bp.route("/upload", methods=["POST"])
 @login_required
 def upload():
@@ -135,6 +176,12 @@ def upload():
     pos_x = 80 + col * 220
     pos_y = 80 + row * 240
 
+    # Transcribe audio/video immediately on upload
+    transcription = None
+    transcription_status = "na"
+    if file_type in ("audio", "video"):
+        transcription_status = "pending"
+
     doc = Document(
         user_id=current_user.id,
         filename=safe_name,
@@ -143,9 +190,18 @@ def upload():
         thumbnail_path=thumb_name,
         position_x=pos_x,
         position_y=pos_y,
+        transcription_status=transcription_status,
     )
     db.session.add(doc)
     db.session.commit()
+
+    # Run transcription after initial commit so the doc is visible immediately
+    if file_type in ("audio", "video"):
+        transcription = _transcribe_media(filepath, file_type)
+        doc.transcription = transcription
+        doc.transcription_status = "done" if transcription else "failed"
+        db.session.commit()
+
     return doc.to_dict(), 201
 
 

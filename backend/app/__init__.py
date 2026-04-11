@@ -44,5 +44,22 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        _migrate_db()
 
     return app
+
+
+def _migrate_db():
+    """Add any missing columns to existing tables without dropping data."""
+    from sqlalchemy import inspect, text
+    inspector = inspect(db.engine)
+    cols = {c["name"] for c in inspector.get_columns("documents")}
+    migrations = []
+    if "transcription" not in cols:
+        migrations.append("ALTER TABLE documents ADD COLUMN transcription TEXT")
+    if "transcription_status" not in cols:
+        migrations.append("ALTER TABLE documents ADD COLUMN transcription_status VARCHAR(20) DEFAULT 'na'")
+    for stmt in migrations:
+        db.session.execute(text(stmt))
+    if migrations:
+        db.session.commit()

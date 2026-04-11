@@ -84,3 +84,29 @@ body {
 .animate-toast-out {
   animation: toast-out 0.25s ease-in forwards;
 }
+
+/* Lattice background animations */
+@keyframes lattice-node-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.85; }
+}
+
+@keyframes lattice-edge-pulse {
+  0%, 100% { opacity: 0.12; }
+  50% { opacity: 0.45; }
+}
+
+/* Navbar logo shimmer */
+@keyframes logo-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.lattice-logo {
+  background: linear-gradient(90deg, #fb923c 0%, #fbbf24 30%, #fff8f0 50%, #fbbf24 70%, #fb923c 100%);
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: logo-shimmer 5s linear infinite;
+}

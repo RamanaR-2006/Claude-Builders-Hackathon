@@ -32,6 +32,8 @@ class Document(db.Model):
     position_x = db.Column(db.Float, default=100.0)
     position_y = db.Column(db.Float, default=100.0)
     is_locked = db.Column(db.Boolean, default=False)
+    transcription = db.Column(db.Text, nullable=True)
+    transcription_status = db.Column(db.String(20), default="na")  # na | pending | done | failed
 
     highlights = db.relationship("Highlight", backref="document", lazy=True, cascade="all, delete-orphan")
 
@@ -45,6 +47,7 @@ class Document(db.Model):
             "position_x": self.position_x,
             "position_y": self.position_y,
             "is_locked": self.is_locked,
+            "transcription_status": self.transcription_status or "na",
         }
 
 

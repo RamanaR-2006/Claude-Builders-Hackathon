@@ -37,6 +37,13 @@ def _extract_text(doc, upload_dir):
         except Exception:
             return f'[File: "{doc.original_name}"]'
 
+    if doc.file_type in ("audio", "video"):
+        if doc.transcription:
+            return doc.transcription[:MAX_CHARS_PER_DOC].strip()
+        if doc.transcription_status == "failed":
+            return f'[{doc.file_type.capitalize()}: "{doc.original_name}" — transcription failed]'
+        return f'[{doc.file_type.capitalize()}: "{doc.original_name}" — transcription pending]'
+
     return f'[File: "{doc.original_name}" (type: {doc.file_type})]'
 
 
@@ -60,6 +67,14 @@ def _extract_text_full(doc, upload_dir, max_chars=6000):
             return text[:max_chars].strip() or f'[File: "{doc.original_name}"]'
         except Exception:
             return f'[File: "{doc.original_name}"]'
+
+    if doc.file_type in ("audio", "video"):
+        if doc.transcription:
+            # Wrap in a single page marker so citations work
+            return f"[Page 1]\n{doc.transcription[:max_chars].strip()}"
+        if doc.transcription_status == "failed":
+            return f'[{doc.file_type.capitalize()}: "{doc.original_name}" — transcription failed]'
+        return f'[{doc.file_type.capitalize()}: "{doc.original_name}" — transcription pending]'
 
     return f'[File: "{doc.original_name}" (type: {doc.file_type})]'
 
@@ -156,6 +171,30 @@ def _compute_smart_layout(all_doc_ids, connections, start_x=120, start_y=120):
     return positions
 
 
+CATEGORIES = {'THEMATIC', 'METHODOLOGICAL', 'CONTRADICTORY', 'COMPLEMENTARY', 'CAUSAL', 'COMPARATIVE'}
+
+
+def _extract_category(description):
+    """Extract the leading category label from a description like 'THEMATIC: ...'"""
+    if not description:
+        return None
+    upper = description.strip().upper()
+    for cat in CATEGORIES:
+        if upper.startswith(cat):
+            return cat
+    return None
+
+
+def _get_existing_categories(user_id, src_id, tgt_id):
+    """Return the set of category labels already used between a pair of docs."""
+    existing = Connection.query.filter(
+        Connection.user_id == user_id,
+        ((Connection.source_doc_id == src_id) & (Connection.target_doc_id == tgt_id))
+        | ((Connection.source_doc_id == tgt_id) & (Connection.target_doc_id == src_id)),
+    ).all()
+    return {_extract_category(c.description or '') for c in existing} - {None}
+
+
 def _has_similar_description(user_id, src_id, tgt_id, new_desc):
     """Check if a near-identical description already exists between this pair."""
     existing = Connection.query.filter(
@@ -216,24 +255,32 @@ def autolink():
     prompt_body = "\n\n---\n\n".join(doc_summaries)
 
     system_parts = [
-        "You analyze documents and identify meaningful connections between them. "
-        "Given summaries of documents, identify which pairs are related and why. "
-        "You may create at most 3 connections between the same pair of documents, but ONLY if "
-        "each connection belongs to a CATEGORICALLY DIFFERENT relationship type from this list: "
+        "You analyze documents and identify deep, specific connections between them. "
+        "Given summaries of documents, identify which pairs are meaningfully related and explain precisely how. "
+        "You may create at most 3 connections between the same pair of documents, but EACH must "
+        "use a STRICTLY DIFFERENT category. The available categories are: "
         "THEMATIC (shared topics or subject matter), "
         "METHODOLOGICAL (similar methods, approaches, or techniques), "
         "CONTRADICTORY (opposing viewpoints or conflicting evidence), "
         "COMPLEMENTARY (different angles that reinforce each other), "
         "CAUSAL (cause-and-effect or dependency), "
         "COMPARATIVE (explicit comparison of findings or concepts). "
-        "Never create two connections between the same pair that belong to the same category — "
-        "each must represent a genuinely different dimension of their relationship. "
-        "Start each description with the category label, e.g. 'THEMATIC: both documents...' "
+        "HARD RULE: for any given pair of documents, each connection must use a DIFFERENT category. "
+        "You CANNOT have two THEMATIC connections between the same pair — that is always wrong. "
+        "If the only relationship you can find is thematic, create only ONE connection. "
+        "Only create multiple connections between the same pair when you can identify genuinely "
+        "distinct relationship dimensions (e.g., THEMATIC + METHODOLOGICAL + CONTRADICTORY). "
+        "Start each description with the category label, e.g. 'THEMATIC: ...' "
+        "DESCRIPTION QUALITY REQUIREMENTS — each description must: "
+        "(1) Name the specific concept, finding, term, or methodology that links the documents — not just the general topic. "
+        "(2) Reference concrete evidence from each document, e.g. a specific claim, section, argument, or data point found in the text. "
+        "(3) Explain WHY this relationship matters or what insight it reveals. "
+        "Write 2-3 sentences. Avoid vague statements like 'both discuss X' — be analytical and specific. "
         "Return ONLY valid JSON with this exact structure: "
-        '{"connections": [{"source_id": <int>, "target_id": <int>, "description": "<category: 1-2 sentence reason>", "strength": <float 1-10>}]}. '
-        "The strength field indicates how strong the connection is: 1 = tenuous/weak, 5 = moderate, 10 = very strong. "
-        "Only connect documents that have a genuine relationship. "
-        "Do not connect every document to every other. Be selective and meaningful."
+        '{"connections": [{"source_id": <int>, "target_id": <int>, "description": "<category: 2-3 sentence specific description>", "strength": <float 1-10>}]}. '
+        "The strength field: 1-3 = superficial/tangential, 4-6 = moderate with clear overlap, 7-9 = strong shared core, 10 = inseparable. "
+        "Only connect documents that have a genuine, substantive relationship. "
+        "Do not connect every document to every other. Be selective — quality over quantity."
     ]
 
     if anchor_ids:
@@ -284,7 +331,8 @@ def autolink():
 
     valid_ids = {d.id for d in docs}
     created_connections = []
-    pair_counts_new = {}  # track connections added in this batch per pair
+    pair_counts_new = {}   # pk -> int: connection count added this batch
+    pair_cats_new = {}     # pk -> set: categories used this batch (+ existing)
 
     def _pair_key(a, b):
         return (min(a, b), max(a, b))
@@ -304,8 +352,16 @@ def autolink():
         if _has_similar_description(current_user.id, src_id, tgt_id, desc):
             continue
 
-        # Enforce per-pair cap across both existing and newly created connections
         pk = _pair_key(src_id, tgt_id)
+
+        # Enforce per-pair category uniqueness (server-side safety net)
+        new_cat = _extract_category(desc)
+        if pk not in pair_cats_new:
+            pair_cats_new[pk] = _get_existing_categories(current_user.id, src_id, tgt_id)
+        if new_cat and new_cat in pair_cats_new[pk]:
+            continue  # same category already exists for this pair — skip
+
+        # Enforce per-pair connection cap
         existing_count = Connection.query.filter(
             Connection.user_id == current_user.id,
             ((Connection.source_doc_id == src_id) & (Connection.target_doc_id == tgt_id))
@@ -315,6 +371,8 @@ def autolink():
         if existing_count + batch_count >= MAX_CONNECTIONS_PER_PAIR:
             continue
         pair_counts_new[pk] = batch_count + 1
+        if new_cat:
+            pair_cats_new[pk].add(new_cat)
 
         if strength is not None:
             try:

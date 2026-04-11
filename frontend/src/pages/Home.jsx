@@ -244,6 +244,10 @@ export default function Home() {
     }
   };
 
+  const handleChatReset = () => {
+    setChatMessages([]);
+  };
+
   const handleCitationClick = (citation) => {
     const doc = docs.find(d => d.id === citation.doc_id);
     if (!doc) return;
@@ -339,6 +343,7 @@ export default function Home() {
         loading={chatLoading}
         onSend={handleChatSend}
         onCitationClick={handleCitationClick}
+        onReset={handleChatReset}
         docs={docs}
       />
 

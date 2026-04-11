@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Loader2, FileText } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, FileText, Trash2 } from 'lucide-react';
 
 function CitationChip({ citation, onClick }) {
   const label = citation.doc_name
@@ -51,8 +51,8 @@ function formatMarkdownLine(line, keyPrefix) {
   return parts.length > 0 ? parts : [<span key={`${keyPrefix}-0`}>{line}</span>];
 }
 
-function renderAssistantMessage(text, citations, onCitationClick) {
-  // First, replace citation markers with placeholder tokens
+function renderAssistantMessage(text, citations, onCitationClick, docs) {
+  // Replace citation markers with placeholder tokens
   const citationPattern = /\[DOC:(\d+):(\d+):"([^"]*?)"\]/g;
   const citationMap = {};
   let citIdx = 0;
@@ -91,17 +91,17 @@ function renderAssistantMessage(text, citations, onCitationClick) {
     // Headers
     if (trimmed.startsWith('### ')) {
       flushList();
-      elements.push(<p key={`h3-${lineIdx}`} className="text-xs font-bold text-white mt-2 mb-0.5">{renderLineWithCitations(trimmed.slice(4), citations, citationMap, onCitationClick, `h3-${lineIdx}`)}</p>);
+      elements.push(<p key={`h3-${lineIdx}`} className="text-xs font-bold text-white mt-2 mb-0.5">{renderLineWithCitations(trimmed.slice(4), citationMap, onCitationClick, docs, `h3-${lineIdx}`)}</p>);
       return;
     }
     if (trimmed.startsWith('## ')) {
       flushList();
-      elements.push(<p key={`h2-${lineIdx}`} className="text-sm font-bold text-white mt-2 mb-0.5">{renderLineWithCitations(trimmed.slice(3), citations, citationMap, onCitationClick, `h2-${lineIdx}`)}</p>);
+      elements.push(<p key={`h2-${lineIdx}`} className="text-sm font-bold text-white mt-2 mb-0.5">{renderLineWithCitations(trimmed.slice(3), citationMap, onCitationClick, docs, `h2-${lineIdx}`)}</p>);
       return;
     }
     if (trimmed.startsWith('# ')) {
       flushList();
-      elements.push(<p key={`h1-${lineIdx}`} className="text-sm font-bold text-white mt-2 mb-0.5">{renderLineWithCitations(trimmed.slice(2), citations, citationMap, onCitationClick, `h1-${lineIdx}`)}</p>);
+      elements.push(<p key={`h1-${lineIdx}`} className="text-sm font-bold text-white mt-2 mb-0.5">{renderLineWithCitations(trimmed.slice(2), citationMap, onCitationClick, docs, `h1-${lineIdx}`)}</p>);
       return;
     }
 
@@ -110,7 +110,7 @@ function renderAssistantMessage(text, citations, onCitationClick) {
     const numberedMatch = trimmed.match(/^\d+[.)]\s+(.+)/);
     if (bulletMatch || numberedMatch) {
       const content = bulletMatch ? bulletMatch[1] : numberedMatch[1];
-      listItems.push(renderLineWithCitations(content, citations, citationMap, onCitationClick, `li-${lineIdx}`));
+      listItems.push(renderLineWithCitations(content, citationMap, onCitationClick, docs, `li-${lineIdx}`));
       return;
     }
 
@@ -118,40 +118,42 @@ function renderAssistantMessage(text, citations, onCitationClick) {
     flushList();
     elements.push(
       <p key={`p-${lineIdx}`} className="text-sm text-gray-200 leading-relaxed">
-        {renderLineWithCitations(trimmed, citations, citationMap, onCitationClick, `p-${lineIdx}`)}
+        {renderLineWithCitations(trimmed, citationMap, onCitationClick, docs, `p-${lineIdx}`)}
       </p>
     );
   });
 
   flushList();
+
+  if (citIdx > 0) {
+    elements.push(
+      <CitationSources key="sources" citationMap={citationMap} docs={docs} onCitationClick={onCitationClick} />
+    );
+  }
+
   return elements;
 }
 
-function renderLineWithCitations(line, citations, citationMap, onCitationClick, keyPrefix) {
-  // Split by citation tokens
+function renderLineWithCitations(line, citationMap, onCitationClick, docs, keyPrefix) {
   const tokenPattern = /__CIT_(\d+)__/g;
   const parts = line.split(tokenPattern);
   const elements = [];
 
   parts.forEach((part, i) => {
     if (i % 2 === 0) {
-      // Text part -- apply markdown formatting
-      if (part) {
-        elements.push(...formatMarkdownLine(part, `${keyPrefix}-t${i}`));
-      }
+      if (part) elements.push(...formatMarkdownLine(part, `${keyPrefix}-t${i}`));
     } else {
-      // Citation index
       const token = `__CIT_${part}__`;
       const citData = citationMap[token];
       if (citData) {
-        const cit = citations.find(c => c.doc_id === citData.docId && c.page === citData.page);
-        if (cit) {
-          elements.push(<CitationChip key={`${keyPrefix}-c${i}`} citation={cit} onClick={onCitationClick} />);
-        } else {
-          elements.push(
-            <span key={`${keyPrefix}-cr${i}`} className="text-[10px] text-gray-500">[ref]</span>
-          );
-        }
+        const doc = docs?.find(d => d.id === citData.docId);
+        const cit = {
+          doc_id: citData.docId,
+          page: citData.page,
+          quote: citData.quote,
+          doc_name: doc?.original_name || `Doc ${citData.docId}`,
+        };
+        elements.push(<CitationChip key={`${keyPrefix}-c${i}`} citation={cit} onClick={onCitationClick} />);
       }
     }
   });
@@ -159,7 +161,47 @@ function renderLineWithCitations(line, citations, citationMap, onCitationClick, 
   return elements;
 }
 
-export default function ChatSidebar({ open, onToggle, messages, loading, onSend, onCitationClick, docs }) {
+function CitationSources({ citationMap, docs, onCitationClick }) {
+  const byDoc = {};
+  Object.values(citationMap).forEach(({ docId, page, quote }) => {
+    if (!byDoc[docId]) {
+      const doc = docs?.find(d => d.id === docId);
+      byDoc[docId] = { docId, name: doc?.original_name || `Doc ${docId}`, entries: [] };
+    }
+    // avoid exact duplicate chips (same page+quote)
+    const already = byDoc[docId].entries.some(e => e.page === page && e.quote === quote);
+    if (!already) byDoc[docId].entries.push({ page, quote });
+  });
+
+  const sources = Object.values(byDoc);
+  if (sources.length === 0) return null;
+
+  return (
+    <div className="mt-2 pt-2 border-t border-surface-600/60">
+      <p className="text-[9px] font-semibold uppercase tracking-widest text-gray-600 mb-1.5">Sources</p>
+      <div className="flex flex-col gap-1">
+        {sources.map(({ docId, name, entries }) => (
+          <div key={docId} className="flex flex-wrap items-center gap-1">
+            <span className="text-[10px] text-gray-500 shrink-0 max-w-[130px] truncate" title={name}>{name}</span>
+            <span className="text-gray-700 text-[9px]">—</span>
+            {entries.map((e, i) => (
+              <button
+                key={i}
+                onClick={() => onCitationClick({ doc_id: docId, page: e.page, quote: e.quote, doc_name: name })}
+                className="text-[10px] px-1.5 py-0.5 rounded bg-surface-600 border border-surface-500 text-lava-400 hover:bg-surface-500 transition cursor-pointer"
+                title={`p.${e.page}: "${e.quote}"`}
+              >
+                p.{e.page}
+              </button>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function ChatSidebar({ open, onToggle, messages, loading, onSend, onCitationClick, onReset, docs }) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -177,6 +219,16 @@ export default function ChatSidebar({ open, onToggle, messages, loading, onSend,
     if (!text || loading) return;
     onSend(text);
     setInput('');
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+    const el = e.target;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
   };
 
   return (
@@ -208,9 +260,20 @@ export default function ChatSidebar({ open, onToggle, messages, loading, onSend,
             <MessageSquare size={16} className="text-lava-400" />
             <h2 className="text-sm font-semibold text-white">Chat</h2>
           </div>
-          <button onClick={onToggle} className="p-1 text-gray-500 hover:text-gray-300 cursor-pointer">
-            <X size={16} />
-          </button>
+          <div className="flex items-center gap-1">
+            {messages.length > 0 && (
+              <button
+                onClick={onReset}
+                className="p-1 text-gray-500 hover:text-magma-400 transition cursor-pointer"
+                title="Clear conversation"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
+            <button onClick={onToggle} className="p-1 text-gray-500 hover:text-gray-300 cursor-pointer">
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         {/* Messages */}
@@ -231,7 +294,7 @@ export default function ChatSidebar({ open, onToggle, messages, loading, onSend,
                   : 'bg-surface-700 text-gray-200 rounded-bl-md border border-surface-500'
               }`}>
                 {msg.role === 'assistant'
-                  ? renderAssistantMessage(msg.content, msg.citations || [], onCitationClick)
+                  ? renderAssistantMessage(msg.content, msg.citations || [], onCitationClick, docs)
                   : <span className="text-sm leading-relaxed" style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</span>
                 }
               </div>
@@ -252,21 +315,22 @@ export default function ChatSidebar({ open, onToggle, messages, loading, onSend,
 
         {/* Input */}
         <div className="shrink-0 px-4 py-3 border-t border-surface-600">
-          <div className="flex items-center gap-2">
-            <input
+          <div className="flex items-end gap-2">
+            <textarea
               ref={inputRef}
-              type="text"
               value={input}
-              onChange={e => setInput(e.target.value)}
+              onChange={handleInputChange}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder="Ask about your documents…"
+              placeholder="Ask about your documents… (Shift+Enter for newline)"
               disabled={loading}
-              className="flex-1 px-3 py-2 text-sm rounded-lg bg-surface-700 border border-surface-500 text-white placeholder-gray-500 outline-none focus:border-lava-500 transition disabled:opacity-50"
+              rows={1}
+              className="flex-1 px-3 py-2 text-sm rounded-lg bg-surface-700 border border-surface-500 text-white placeholder-gray-500 outline-none focus:border-lava-500 transition disabled:opacity-50 resize-none overflow-y-auto"
+              style={{ minHeight: '36px', maxHeight: '120px' }}
             />
             <button
               onClick={handleSend}
               disabled={loading || !input.trim()}
-              className="p-2 rounded-lg bg-lava-600 hover:bg-lava-500 text-white transition disabled:opacity-30 cursor-pointer shrink-0"
+              className="p-2 rounded-lg bg-lava-600 hover:bg-lava-500 text-white transition disabled:opacity-30 cursor-pointer shrink-0 mb-0"
             >
               <Send size={16} />
             </button>
