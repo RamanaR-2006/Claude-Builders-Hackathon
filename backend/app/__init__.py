@@ -33,12 +33,14 @@ def create_app():
     from .auth import auth_bp
     from .autolink import autolink_bp
     from .canvas import canvas_bp
+    from .chat import chat_bp
     from .documents import documents_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(documents_bp, url_prefix="/api/documents")
     app.register_blueprint(canvas_bp, url_prefix="/api")
     app.register_blueprint(autolink_bp, url_prefix="/api")
+    app.register_blueprint(chat_bp, url_prefix="/api")
 
     with app.app_context():
         db.create_all()

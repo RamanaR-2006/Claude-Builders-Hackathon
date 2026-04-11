@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default function ConnectionModal({ conn, docs, position, onSave, onDelete, onClose }) {
+export default function ConnectionModal({ conn, docs, position, onSave, onDelete, onClose, pairConns = [], onNavConn }) {
   const [desc, setDesc] = useState(conn.description || '');
   const textRef = useRef(null);
 
@@ -13,9 +13,21 @@ export default function ConnectionModal({ conn, docs, position, onSave, onDelete
   const srcName = docs.find(d => d.id === conn.source_doc_id)?.original_name || '?';
   const tgtName = docs.find(d => d.id === conn.target_doc_id)?.original_name || '?';
 
+  const currentIdx = pairConns.findIndex(c => c.id === conn.id);
+  const total = pairConns.length;
+  const hasMultiple = total > 1;
+
   const handleSave = () => {
     onSave(conn.id, desc);
     onClose();
+  };
+
+  const handlePrev = () => {
+    if (currentIdx > 0) onNavConn(pairConns[currentIdx - 1]);
+  };
+
+  const handleNext = () => {
+    if (currentIdx < total - 1) onNavConn(pairConns[currentIdx + 1]);
   };
 
   return (
@@ -26,6 +38,17 @@ export default function ConnectionModal({ conn, docs, position, onSave, onDelete
     >
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Connection</h3>
+        {hasMultiple && (
+          <div className="flex items-center gap-1 text-[10px] text-gray-500">
+            <button onClick={handlePrev} disabled={currentIdx <= 0} className="p-0.5 hover:text-gray-300 disabled:opacity-30 cursor-pointer">
+              <ChevronLeft size={12} />
+            </button>
+            <span className="text-gray-400">{currentIdx + 1}/{total}</span>
+            <button onClick={handleNext} disabled={currentIdx >= total - 1} className="p-0.5 hover:text-gray-300 disabled:opacity-30 cursor-pointer">
+              <ChevronRight size={12} />
+            </button>
+          </div>
+        )}
         <button onClick={onClose} className="p-0.5 text-gray-500 hover:text-gray-300 cursor-pointer shrink-0">
           <X size={14} />
         </button>
@@ -36,6 +59,10 @@ export default function ConnectionModal({ conn, docs, position, onSave, onDelete
         <p className="text-[10px] text-gray-500">↓ connected to</p>
         <p className="text-xs text-gray-300 font-medium truncate" title={tgtName}>{tgtName}</p>
       </div>
+
+      {hasMultiple && (
+        <p className="text-[10px] text-gray-500 mb-2">{total} connections between these documents</p>
+      )}
 
       <textarea
         ref={textRef}

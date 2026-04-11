@@ -40,6 +40,30 @@ def _extract_text(doc, upload_dir):
     return f'[File: "{doc.original_name}" (type: {doc.file_type})]'
 
 
+def _extract_text_full(doc, upload_dir, max_chars=6000):
+    """Extract more text for chat context."""
+    if doc.file_type == "pdf":
+        filepath = os.path.join(upload_dir, doc.filename)
+        if not os.path.exists(filepath):
+            return f'[File: "{doc.original_name}"]'
+        try:
+            import fitz
+
+            pdf = fitz.open(filepath)
+            text = ""
+            for page_num, page in enumerate(pdf):
+                page_text = page.get_text("text")
+                text += f"\n[Page {page_num + 1}]\n{page_text}"
+                if len(text) > max_chars:
+                    break
+            pdf.close()
+            return text[:max_chars].strip() or f'[File: "{doc.original_name}"]'
+        except Exception:
+            return f'[File: "{doc.original_name}"]'
+
+    return f'[File: "{doc.original_name}" (type: {doc.file_type})]'
+
+
 def _find_clusters(doc_ids, connections):
     adj = {d: set() for d in doc_ids}
     id_set = set(doc_ids)
@@ -132,11 +156,26 @@ def _compute_smart_layout(all_doc_ids, connections, start_x=120, start_y=120):
     return positions
 
 
-def _connection_exists(user_id, src_id, tgt_id):
-    if Connection.query.filter_by(user_id=user_id, source_doc_id=src_id, target_doc_id=tgt_id).first():
-        return True
-    if Connection.query.filter_by(user_id=user_id, source_doc_id=tgt_id, target_doc_id=src_id).first():
-        return True
+def _has_similar_description(user_id, src_id, tgt_id, new_desc):
+    """Check if a near-identical description already exists between this pair."""
+    existing = Connection.query.filter(
+        Connection.user_id == user_id,
+        ((Connection.source_doc_id == src_id) & (Connection.target_doc_id == tgt_id))
+        | ((Connection.source_doc_id == tgt_id) & (Connection.target_doc_id == src_id)),
+    ).all()
+    if not existing:
+        return False
+    new_lower = new_desc.strip().lower()
+    if not new_lower:
+        return False
+    for c in existing:
+        existing_lower = (c.description or "").strip().lower()
+        if not existing_lower:
+            continue
+        if new_lower == existing_lower:
+            return True
+        if new_lower in existing_lower or existing_lower in new_lower:
+            return True
     return False
 
 
@@ -150,7 +189,10 @@ def autolink():
     data = request.get_json()
     doc_ids = data.get("doc_ids", [])
     anchor_ids = set(data.get("anchor_ids", []))
-    guidance = (data.get("guidance") or "").strip()
+    overall_prompt = (data.get("overall_prompt") or "").strip()
+    guided_rules = data.get("guided_rules", [])
+    # Backward compat: accept old single "guidance" field
+    old_guidance = (data.get("guidance") or "").strip()
 
     if len(doc_ids) < 2:
         return {"error": "At least 2 documents are required"}, 400
@@ -173,10 +215,11 @@ def autolink():
 
     prompt_body = "\n\n---\n\n".join(doc_summaries)
 
-    # Build system prompt
     system_parts = [
         "You analyze documents and identify meaningful connections between them. "
         "Given summaries of documents, identify which pairs are related and why. "
+        "You may create MULTIPLE connections between the same pair of documents if they share "
+        "distinct themes or relationships -- each connection should describe a different aspect. "
         "Return ONLY valid JSON with this exact structure: "
         '{"connections": [{"source_id": <int>, "target_id": <int>, "description": "<1-2 sentence reason>", "strength": <float 1-10>}]}. '
         "The strength field indicates how strong the connection is: 1 = tenuous/weak, 5 = moderate, 10 = very strong. "
@@ -191,12 +234,20 @@ def autolink():
             "Non-anchor connections are still allowed if the relationship is strong."
         )
 
+    if overall_prompt:
+        system_parts.append(f" Additional context: {overall_prompt}")
+
     system_prompt = "".join(system_parts)
 
-    # Build user message
     user_msg = f"Analyze these {len(docs)} documents and identify connections:\n\n{prompt_body}"
-    if guidance:
-        user_msg += f"\n\nFocus connections on the following theme or criteria: {guidance}"
+
+    if guided_rules and any(r.strip() for r in guided_rules):
+        rules_text = "\n".join(
+            f"{i + 1}) {r.strip()}" for i, r in enumerate(guided_rules) if r.strip()
+        )
+        user_msg += f"\n\nAdditionally, apply these connection guidelines:\n{rules_text}"
+    elif old_guidance:
+        user_msg += f"\n\nFocus connections on the following theme or criteria: {old_guidance}"
 
     try:
         import anthropic
@@ -235,10 +286,9 @@ def autolink():
             continue
         if src_id == tgt_id:
             continue
-        if _connection_exists(current_user.id, src_id, tgt_id):
+        if _has_similar_description(current_user.id, src_id, tgt_id, desc):
             continue
 
-        # Clamp strength to 1-10
         if strength is not None:
             try:
                 strength = max(1.0, min(10.0, float(strength)))

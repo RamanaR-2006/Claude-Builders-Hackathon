@@ -49,15 +49,11 @@ def create_connection():
     if not source or not target:
         return {"error": "Document not found"}, 404
 
-    existing = Connection.query.filter_by(
-        user_id=current_user.id, source_doc_id=source_id, target_doc_id=target_id
-    ).first()
-    if not existing:
-        existing = Connection.query.filter_by(
-            user_id=current_user.id, source_doc_id=target_id, target_doc_id=source_id
-        ).first()
-    if existing:
-        return {"error": "Connection already exists"}, 409
+    existing = Connection.query.filter(
+        Connection.user_id == current_user.id,
+        ((Connection.source_doc_id == source_id) & (Connection.target_doc_id == target_id))
+        | ((Connection.source_doc_id == target_id) & (Connection.target_doc_id == source_id)),
+    ).all()
 
     conn = Connection(
         user_id=current_user.id,
@@ -67,7 +63,12 @@ def create_connection():
     )
     db.session.add(conn)
     db.session.commit()
-    return conn.to_dict(), 201
+
+    result = conn.to_dict()
+    if existing:
+        result["warning"] = f"These documents already have {len(existing)} other connection(s)"
+        result["existing_count"] = len(existing)
+    return result, 201
 
 
 @canvas_bp.route("/connections/<int:conn_id>", methods=["PUT"])

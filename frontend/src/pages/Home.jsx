@@ -6,8 +6,9 @@ import Canvas from '../components/Canvas';
 import UploadModal from '../components/UploadModal';
 import DocumentViewer from '../components/DocumentViewer';
 import SearchResults from '../components/SearchResults';
-import AutoLinkBar from '../components/AutoLinkBar';
+import AutoLinkPanel from '../components/AutoLinkPanel';
 import DocSidebar from '../components/DocSidebar';
+import ChatSidebar from '../components/ChatSidebar';
 import Toast from '../components/Toast';
 
 let toastId = 0;
@@ -40,6 +41,11 @@ export default function Home() {
   const [autoLinking, setAutoLinking] = useState(false);
   const [animating, setAnimating] = useState(false);
   const [newConnIds, setNewConnIds] = useState(new Set());
+
+  // Chat state
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatLoading, setChatLoading] = useState(false);
 
   const addToast = useCallback((message, type = 'error') => {
     const id = ++toastId;
@@ -133,7 +139,7 @@ export default function Home() {
     });
   }, []);
 
-  const handleAutoLinkAnalyze = async (guidance) => {
+  const handleAutoLinkAnalyze = async ({ overallPrompt, guidedRules }) => {
     if (selectedDocIds.size < 2) return;
     setAutoLinking(true);
 
@@ -141,7 +147,8 @@ export default function Home() {
       const res = await api.post('/autolink', {
         doc_ids: Array.from(selectedDocIds),
         anchor_ids: Array.from(anchorDocIds),
-        guidance: guidance || '',
+        overall_prompt: overallPrompt || '',
+        guided_rules: guidedRules || [],
       });
       const { connections: newConns, positions } = res.data;
 
@@ -208,6 +215,34 @@ export default function Home() {
     }
   };
 
+  // Chat handlers
+  const handleChatSend = async (message) => {
+    const userMsg = { role: 'user', content: message, citations: [] };
+    setChatMessages(prev => [...prev, userMsg]);
+    setChatLoading(true);
+
+    try {
+      const history = chatMessages.map(m => ({ role: m.role, content: m.content }));
+      const res = await api.post('/chat', { message, history });
+      const { reply, citations } = res.data;
+      const assistantMsg = { role: 'assistant', content: reply, citations };
+      setChatMessages(prev => [...prev, assistantMsg]);
+    } catch (err) {
+      const errMsg = err.response?.data?.error || 'Chat request failed';
+      setChatMessages(prev => [...prev, { role: 'assistant', content: `Error: ${errMsg}`, citations: [] }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const handleCitationClick = (citation) => {
+    const doc = docs.find(d => d.id === citation.doc_id);
+    if (!doc) return;
+    setViewingDoc(doc);
+    setSearchPage(citation.page);
+    setSearchQuery(citation.quote);
+  };
+
   return (
     <div className="h-screen flex flex-col relative">
       <Navbar
@@ -272,7 +307,7 @@ export default function Home() {
       )}
 
       {selectMode && (
-        <AutoLinkBar
+        <AutoLinkPanel
           selectedCount={selectedDocIds.size}
           anchorCount={anchorDocIds.size}
           onCancel={handleToggleAutoLink}
@@ -286,6 +321,16 @@ export default function Home() {
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         onNavigate={handleSidebarNavigate}
+      />
+
+      <ChatSidebar
+        open={chatOpen}
+        onToggle={() => setChatOpen(prev => !prev)}
+        messages={chatMessages}
+        loading={chatLoading}
+        onSend={handleChatSend}
+        onCitationClick={handleCitationClick}
+        docs={docs}
       />
 
       {showUpload && (

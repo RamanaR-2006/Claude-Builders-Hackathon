@@ -27,7 +27,7 @@ function truncate(str, max = 60) {
   return str.length > max ? str.slice(0, max) + '…' : str;
 }
 
-export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIndex = 0 }) {
+export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIndex = 0, pairIndex = 0, pairTotal = 1 }) {
   const [hovered, setHovered] = useState(false);
   const src = docs.find(d => d.id === conn.source_doc_id);
   const tgt = docs.find(d => d.id === conn.target_doc_id);
@@ -38,9 +38,6 @@ export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIn
   const x2 = tgt.position_x + NODE_W / 2;
   const y2 = tgt.position_y + NODE_H / 2;
 
-  const midX = (x1 + x2) / 2;
-  const midY = (y1 + y2) / 2;
-
   const hasStrength = conn.strength != null;
   const palette = hasStrength ? strengthToColor(conn.strength) : LINE_COLORS[colorIndex % LINE_COLORS.length];
   const desc = conn.description || '';
@@ -48,32 +45,59 @@ export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIn
     ? `${truncate(desc, 100)} (Strength: ${Number(conn.strength).toFixed(1)}/10)`
     : truncate(desc, 120);
 
+  // Compute perpendicular offset for parallel connections between the same pair
+  const OFFSET_SPACING = 20;
+  let offset = 0;
+  if (pairTotal > 1) {
+    offset = (pairIndex - (pairTotal - 1) / 2) * OFFSET_SPACING;
+  }
+
+  // Perpendicular direction
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.sqrt(dx * dx + dy * dy) || 1;
+  const nx = -dy / len;
+  const ny = dx / len;
+
+  // Control point for quadratic bezier at midpoint + perpendicular offset
+  const cpx = (x1 + x2) / 2 + nx * offset;
+  const cpy = (y1 + y2) / 2 + ny * offset;
+
+  // Midpoint of the actual curve (at t=0.5 for a quadratic bezier)
+  const midX = 0.25 * x1 + 0.5 * cpx + 0.25 * x2;
+  const midY = 0.25 * y1 + 0.5 * cpy + 0.25 * y2;
+
+  const pathD = `M ${x1} ${y1} Q ${cpx} ${cpy} ${x2} ${y2}`;
+
   return (
     <g className="cursor-pointer" onClick={(e) => { e.stopPropagation(); onClick(conn); }}>
-      {/* Glow effect */}
-      <line
-        x1={x1} y1={y1} x2={x2} y2={y2}
+      {/* Glow */}
+      <path
+        d={pathD}
+        fill="none"
         stroke={palette.glow}
         strokeWidth={6}
         strokeLinecap="round"
         opacity={0.15}
         className={animateIn ? 'animate-line-draw' : ''}
       />
-      <line
-        x1={x1} y1={y1} x2={x2} y2={y2}
+      <path
+        d={pathD}
+        fill="none"
         stroke={palette.line}
         strokeWidth={2}
         strokeLinecap="round"
         opacity={0.7}
         className={animateIn ? 'animate-line-draw' : ''}
       />
-      {/* Invisible wider hit area */}
-      <line
-        x1={x1} y1={y1} x2={x2} y2={y2}
+      {/* Wider hit area */}
+      <path
+        d={pathD}
+        fill="none"
         stroke="transparent"
         strokeWidth={14}
       />
-      {/* Midpoint diamond with hover zone */}
+      {/* Midpoint diamond hover zone */}
       <rect
         x={midX - 14} y={midY - 14}
         width={28} height={28}
@@ -91,7 +115,6 @@ export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIn
         style={{ pointerEvents: 'none' }}
       />
 
-      {/* Strength score badge */}
       {hasStrength && (
         <text
           x={midX}
@@ -106,7 +129,6 @@ export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIn
         </text>
       )}
 
-      {/* Tooltip on hover */}
       {hovered && desc && (
         <foreignObject
           x={midX - 140}

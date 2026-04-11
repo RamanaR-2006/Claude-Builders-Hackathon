@@ -11629,3 +11629,1628 @@ Port freed
 <summary>Tool use: **run_terminal_command_v2**</summary>
 
 </details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend && source venv/bin/activate && python run.py</summary>
+
+```bash
+cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend && source venv/bin/activate && python run.py
+```
+
+```
+ * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 342-700-901
+]633;C * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 342-700-901
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Database has been wiped and the backend is running fresh. You can now go to http://localhost:5173/ and register again with `mais.krishvardhan@gmail.com` (or any email) and a new password. All previous documents and connections will be gone since it's a clean slate.
+
+---
+
+_**User**_
+
+The app is looking amazing but I want to add some new features and change some existing ones:
+1) Change connections, allow multiple connections between documents (except when a connection may override an existing connection between two documents)
+2) Change the Auto-link UI, make the menu pop up bigger. Add a section for the user to input an overall guiding prompt and a subsection for guiding connections.
+3) Add a new feature: A chat sidebar popup (have it be a tab on the side of the screen that the user can tap/drag out to open a chat menu). This chat menu will use the linked structure as a data-base to refer to in order to answer the user’s queries. An example of this could be that the user asks for quotes related to a certain topic in their query, the output will be a list of good quotes, which the user can click on and see it in the document, highlighting the excerpt where the quote is taken from.
+
+
+---
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<think><details><summary>Thought Process</summary>
+The user wants three features:
+
+1. Allow multiple connections between documents (but not duplicate connections with the same description/purpose)
+2. Redesign the Auto-link UI to be bigger with an overall guiding prompt and subsection for guiding connections
+3. Add a chat sidebar that uses document content as a knowledge base
+
+Let me clarify some things before creating the plan. I need to understand:
+
+1. For multiple connections - what makes a connection "override" an existing one? Same description? Or does the user mean they just can't have two identical connections?
+2. For the auto-link UI - what does "subsection for guiding connections" mean exactly? Is this different from the existing guidance text input?
+
+
+3. For the chat sidebar - I should explore the codebase first to understand the current architecture, then ask clarifying questions about scope and implementation details.</details></think>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Let me explore the current state of the relevant components before asking some clarifying questions.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="task_v2">
+<details>
+<summary>Tool use: **task_v2**</summary>
+
+
+Parameters:
+
+```json
+{
+  "description": "Explore connection handling code",
+  "model": "composer-2-fast",
+  "name": "explore",
+  "prompt": "Search the codebase at /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon for how connections between documents are currently handled. I need to understand:\n\n1. In backend/app/canvas.py - how are connections created? What duplicate check logic exists?\n2. In backend/app/autolink.py - how does _connection_exists work? How are connections created during auto-link?\n3. In frontend/src/components/Canvas.jsx - how does the frontend prevent duplicate connections?\n4. In frontend/src/components/ConnectionModal.jsx - what does the connection description modal look like?\n5. In frontend/src/components/AutoLinkBar.jsx - what does the current auto-link bar look like?\n\nReturn the full contents of these files, or the most relevant sections.",
+  "subagentType": "explore"
+}
+```
+Additional data:
+
+```json
+{
+  "status": "success",
+  "subagentComposerId": "fdf5225c-f664-4150-add7-4dde754f35b2",
+  "terminationReason": "completed"
+}
+```
+Result:
+
+```json
+{
+  "agentId": "fdf5225c-f664-4150-add7-4dde754f35b2"
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="task_v2"><details>
+<summary>Tool use: **task_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="task_v2">
+<details>
+<summary>Tool use: **task_v2**</summary>
+
+
+Parameters:
+
+```json
+{
+  "description": "Explore chat/sidebar components",
+  "model": "composer-2-fast",
+  "name": "explore",
+  "prompt": "Search the codebase at /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon for:\n\n1. The full contents of frontend/src/components/DocSidebar.jsx - to understand how the existing sidebar works\n2. The full contents of frontend/src/components/DocumentViewer.jsx - to understand how documents are viewed/highlighted\n3. The full contents of frontend/src/pages/Home.jsx - to understand the overall page layout and state management\n4. The full contents of backend/app/autolink.py - to see how document content extraction works (_extract_text)\n5. Check if there's any existing chat-related code\n\nReturn all file contents.",
+  "subagentType": "explore"
+}
+```
+Additional data:
+
+```json
+{
+  "status": "success",
+  "subagentComposerId": "9f017a9d-5383-4fbb-acb6-fb587749753e",
+  "terminationReason": "completed"
+}
+```
+Result:
+
+```json
+{
+  "agentId": "9f017a9d-5383-4fbb-acb6-fb587749753e"
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="task_v2"><details>
+<summary>Tool use: **task_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ask_question">
+<details>
+<summary>Tool use: **ask_question**</summary>
+
+
+Parameters:
+
+```json
+{
+  "questions": [
+    {
+      "id": "multi-conn",
+      "options": [
+        {
+          "id": "same-desc",
+          "label": "Yes -- block only if the description is identical to an existing connection between those two docs"
+        },
+        {
+          "id": "manual-check",
+          "label": "Let me create freely, but warn me if a very similar connection already exists"
+        },
+        {
+          "id": "other",
+          "label": "Something else (I'll explain)"
+        }
+      ],
+      "prompt": "For multiple connections between documents: currently, two documents can only have one connection. You want to allow multiple connections between the same pair. By 'except when a connection may override an existing connection', do you mean the user should NOT be able to create a new connection with the exact same description text as an existing one between those two documents?"
+    },
+    {
+      "id": "autolink-ui",
+      "options": [
+        {
+          "id": "multi-rules",
+          "label": "Multiple rules -- user can add several specific guided connection entries"
+        },
+        {
+          "id": "single-field",
+          "label": "Just one additional focused text field for connection-specific guidance"
+        },
+        {
+          "id": "other-autolink",
+          "label": "Something else (I'll explain)"
+        }
+      ],
+      "prompt": "For the redesigned Auto-Link UI: currently there is a single guidance input. You want an 'overall guiding prompt' AND a 'subsection for guiding connections'. Should the subsection allow the user to define multiple specific guided connection rules (e.g., 'connect docs about X to docs about Y'), or is it one additional focused text field?"
+    },
+    {
+      "id": "chat-model",
+      "options": [
+        {
+          "id": "multi-turn",
+          "label": "Multi-turn -- keep conversation history so follow-up questions work"
+        },
+        {
+          "id": "single-turn",
+          "label": "Single-turn -- each query is independent, no memory of previous questions"
+        }
+      ],
+      "prompt": "For the Chat sidebar: this will need to call the Anthropic Claude API to answer queries using document contents as context. Should the chat support conversation history (multi-turn), or is each query independent (single-turn)?"
+    }
+  ],
+  "title": "Clarifications for New Features"
+}
+```
+Additional data:
+
+```json
+{
+  "currentSelections": {
+    "autolink-ui": [
+      "multi-rules"
+    ],
+    "chat-model": [
+      "multi-turn"
+    ],
+    "multi-conn": [
+      "manual-check"
+    ]
+  },
+  "freeformTexts": {
+    "autolink-ui": "",
+    "chat-model": "",
+    "multi-conn": ""
+  },
+  "status": "submitted"
+}
+```
+Result:
+
+```json
+{
+  "answers": [
+    {
+      "freeformText": "",
+      "questionId": "multi-conn",
+      "selectedOptionIds": [
+        "manual-check"
+      ]
+    },
+    {
+      "freeformText": "",
+      "questionId": "autolink-ui",
+      "selectedOptionIds": [
+        "multi-rules"
+      ]
+    },
+    {
+      "freeformText": "",
+      "questionId": "chat-model",
+      "selectedOptionIds": [
+        "multi-turn"
+      ]
+    }
+  ]
+}
+```
+User decision: **accepted**
+
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ask_question"><details>
+<summary>Tool use: **ask_question**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ask_question">
+<details>
+<summary>Tool use: **ask_question**</summary>
+
+
+Parameters:
+
+```json
+{
+  "questions": [
+    {
+      "id": "chat-scope",
+      "options": [
+        {
+          "id": "all-docs",
+          "label": "All uploaded documents"
+        },
+        {
+          "id": "linked-only",
+          "label": "Only documents that have connections (part of linked structures)"
+        },
+        {
+          "id": "user-choose",
+          "label": "Let the user choose which documents to include in the chat context"
+        }
+      ],
+      "prompt": "For the Chat sidebar knowledge base: should the chat have access to ALL of the user's uploaded documents, or only documents that are part of a linked structure (i.e., documents that have at least one connection)?"
+    },
+    {
+      "id": "chat-citations",
+      "options": [
+        {
+          "id": "yes-viewer",
+          "label": "Yes -- clicking opens DocumentViewer at the relevant location with highlighting"
+        },
+        {
+          "id": "just-link",
+          "label": "Just show the document name as a link, no specific page/highlight navigation"
+        }
+      ],
+      "prompt": "When the chat references a document (e.g., a quote), should clicking on the citation open the DocumentViewer with the relevant page/section highlighted?"
+    }
+  ],
+  "title": "Follow-up: Chat Sidebar Scope"
+}
+```
+Additional data:
+
+```json
+{
+  "currentSelections": {
+    "chat-citations": [
+      "yes-viewer"
+    ],
+    "chat-scope": [
+      "all-docs"
+    ]
+  },
+  "freeformTexts": {
+    "chat-citations": "",
+    "chat-scope": ""
+  },
+  "status": "submitted"
+}
+```
+Result:
+
+```json
+{
+  "answers": [
+    {
+      "freeformText": "",
+      "questionId": "chat-scope",
+      "selectedOptionIds": [
+        "all-docs"
+      ]
+    },
+    {
+      "freeformText": "",
+      "questionId": "chat-citations",
+      "selectedOptionIds": [
+        "yes-viewer"
+      ]
+    }
+  ]
+}
+```
+User decision: **accepted**
+
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ask_question"><details>
+<summary>Tool use: **ask_question**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now I have all the information I need. Let me create the plan.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="create_plan">
+<details>
+<summary>Tool use: **create_plan**</summary>
+
+
+Parameters:
+
+```json
+{
+  "name": "Connections Chat AutoLink",
+  "overview": "Allow multiple connections between document pairs with similarity warnings, redesign the Auto-Link UI as a larger modal with overall prompt and multiple guided connection rules, and build a multi-turn chat sidebar powered by Claude that uses all uploaded documents as context with clickable citations that open the DocumentViewer.",
+  "plan": "# Connections, Chat Sidebar, and Auto-Link UI Enhancements\n\n## 1. Multiple Connections Between Documents\n\nCurrently, both [backend/app/canvas.py](backend/app/canvas.py) and [frontend/src/components/Canvas.jsx](frontend/src/components/Canvas.jsx) block any second connection between the same document pair. This needs to change to allow multiple connections while warning if a similar one exists.\n\n### Backend -- &#96;canvas.py&#96;\n\n- Remove the 409 duplicate-blocking logic from &#96;create_connection()&#96;. Instead, before creating, query all existing connections between the pair (both directions) and return them in the response as a &#96;\"similar_existing\"&#96; list.\n- The new connection is **always created** regardless, but the response includes a &#96;\"warning\"&#96; field if similar connections exist, so the frontend can show a toast.\n\n### Backend -- &#96;autolink.py&#96;\n\n- Remove the &#96;_connection_exists()&#96; gate in the auto-link loop. Instead, check if any existing connection between the pair has a very similar description (basic substring/overlap check). Skip only if a near-identical description already exists.\n\n### Frontend -- &#96;Canvas.jsx&#96;\n\n- Remove the &#96;alreadyExists&#96; client-side block in &#96;handleNodeClick&#96;. Always POST. If the response includes &#96;warning&#96;, show an info toast: \"Note: these documents already have N other connection(s)\".\n\n### Frontend -- &#96;ConnectionLine.jsx&#96;\n\n- Multiple connections between the same pair need visual separation. Offset parallel lines slightly: compute a perpendicular offset based on the connection's index among all connections sharing the same pair. Use a small curve (quadratic bezier via SVG &#96;\u003cpath\u003e&#96; instead of &#96;\u003cline\u003e&#96;) so parallel connections fan out and are individually clickable.\n\n### Frontend -- &#96;ConnectionModal.jsx&#96;\n\n- Show a \"N connections between these documents\" count. Add prev/next arrows if there are multiple connections for the same pair, allowing the user to cycle through them.\n\n---\n\n## 2. Redesigned Auto-Link UI\n\nReplace the small bottom bar ([frontend/src/components/AutoLinkBar.jsx](frontend/src/components/AutoLinkBar.jsx)) with a larger centered modal/panel.\n\n### New &#96;AutoLinkPanel.jsx&#96; (replaces &#96;AutoLinkBar.jsx&#96;)\n\nLayout -- a centered floating panel (~500px wide):\n\n- **Header**: \"Auto-Link\" title, selected count + anchor count, close button\n- **Overall Prompt section**: A larger textarea for the user to describe the overall theme/context for connections (e.g., \"These documents are research papers about climate change\")\n- **Guided Connections section**: A list of user-defined rules. Each rule has:\n  - A text input for the connection guidance (e.g., \"Connect papers that share the same methodology\")\n  - A remove button (X)\n  - An \"Add rule\" button at the bottom to append a new blank rule\n- **Footer**: Cancel and Analyze buttons (same behavior as current)\n\n### Backend -- &#96;autolink.py&#96;\n\n- Accept &#96;overall_prompt&#96; (string) and &#96;guided_rules&#96; (list of strings) instead of the single &#96;guidance&#96; string.\n- Build the Claude prompt:\n  - &#96;overall_prompt&#96; goes into the system message as additional context\n  - Each guided rule is numbered in the user message: \"Additionally, apply these connection guidelines: 1) ... 2) ...\"\n\n### Home.jsx\n\n- Replace &#96;AutoLinkBar&#96; with &#96;AutoLinkPanel&#96;. The &#96;handleAutoLinkAnalyze&#96; callback now receives &#96;{ overallPrompt, guidedRules }&#96; instead of a single guidance string.\n\n---\n\n## 3. Chat Sidebar\n\nA slide-out chat panel on the right side of the screen, using all uploaded documents as a knowledge base via the Anthropic Claude API.\n\n### Backend -- New &#96;chat.py&#96; blueprint\n\nNew file: [backend/app/chat.py](backend/app/chat.py)\n\n- Register &#96;chat_bp&#96; with prefix &#96;/api&#96; in [backend/app/__init__.py](backend/app/__init__.py).\n- **&#96;POST /api/chat&#96;**: Accepts &#96;{ \"message\": string, \"history\": [{\"role\": \"user\"|\"assistant\", \"content\": string}] }&#96;.\n  - Extracts text from ALL user documents (reuse &#96;_extract_text&#96; logic -- move to a shared util or import from autolink).\n  - Builds a Claude system prompt: \"You are a research assistant. Use the following document contents to answer questions. When referencing specific content, include citations in the format [DOC:doc_id:page_number] with the exact quote. Documents:\\n\\n{doc_summaries}\"\n  - Sends the conversation history + new message to Claude.\n  - Parses the response for &#96;[DOC:id:page]&#96; citation markers.\n  - Returns &#96;{ \"reply\": string, \"citations\": [{ \"doc_id\": int, \"page\": int|null, \"quote\": string }] }&#96;.\n\n### Frontend -- New &#96;ChatSidebar.jsx&#96;\n\nA right-edge slide-out panel (similar pattern to &#96;DocSidebar.jsx&#96; but from the right):\n\n- **Tab handle**: A small vertical tab on the right edge of the screen (visible when closed) with a chat icon. Clicking or dragging opens the panel.\n- **Panel** (~380px wide):\n  - **Header**: \"Chat\" title, close button\n  - **Messages area**: Scrollable list of user/assistant messages. Assistant messages render markdown and parse citation markers into clickable chips showing the document name.\n  - **Citation chips**: Clicking a &#96;[DOC:id:page]&#96; chip calls a callback that opens &#96;DocumentViewer&#96; for that doc at the specified page, with the quote as a search highlight.\n  - **Input area**: Text input + send button at the bottom. Pressing Enter sends.\n- **State**: &#96;messages&#96; array (conversation history), &#96;loading&#96; boolean.\n\n### Home.jsx Integration\n\n- Add &#96;chatOpen&#96; state, &#96;chatMessages&#96; state.\n- Add a &#96;handleChatSend&#96; function that POSTs to &#96;/api/chat&#96; with the message and history.\n- Add a &#96;handleCitationClick(docId, page, quote)&#96; function that opens &#96;DocumentViewer&#96; with &#96;searchQuery=quote&#96; and &#96;searchPage=page&#96;.\n- Render &#96;ChatSidebar&#96; with these props.\n\n### Data flow for citations\n\n&#96;&#96;&#96;mermaid\nsequenceDiagram\n    participant User\n    participant ChatSidebar\n    participant Backend\n    participant Claude\n    participant DocViewer\n\n    User-\u003e\u003eChatSidebar: Types question\n    ChatSidebar-\u003e\u003eBackend: POST /api/chat\n    Backend-\u003e\u003eBackend: Extract text from all docs\n    Backend-\u003e\u003eClaude: System prompt + docs + history + question\n    Claude-\u003e\u003eBackend: Reply with [DOC:id:page] markers\n    Backend-\u003e\u003eChatSidebar: { reply, citations }\n    ChatSidebar-\u003e\u003eUser: Renders reply with clickable citation chips\n    User-\u003e\u003eChatSidebar: Clicks citation chip\n    ChatSidebar-\u003e\u003eDocViewer: Opens doc at page with quote highlighted\n&#96;&#96;&#96;\n\n---\n\n## Files Changed\n\n- [backend/app/canvas.py](backend/app/canvas.py) -- remove duplicate connection blocking, add warning\n- [backend/app/autolink.py](backend/app/autolink.py) -- change &#96;_connection_exists&#96; to similarity check, accept &#96;overall_prompt&#96; + &#96;guided_rules&#96;\n- [backend/app/chat.py](backend/app/chat.py) -- **new** chat blueprint\n- [backend/app/__init__.py](backend/app/__init__.py) -- register &#96;chat_bp&#96;\n- [frontend/src/components/Canvas.jsx](frontend/src/components/Canvas.jsx) -- remove duplicate block, handle warnings\n- [frontend/src/components/ConnectionLine.jsx](frontend/src/components/ConnectionLine.jsx) -- parallel line offset for multi-connections\n- [frontend/src/components/ConnectionModal.jsx](frontend/src/components/ConnectionModal.jsx) -- multi-connection navigation\n- [frontend/src/components/AutoLinkPanel.jsx](frontend/src/components/AutoLinkPanel.jsx) -- **new** replaces &#96;AutoLinkBar.jsx&#96;\n- [frontend/src/components/ChatSidebar.jsx](frontend/src/components/ChatSidebar.jsx) -- **new** chat sidebar\n- [frontend/src/pages/Home.jsx](frontend/src/pages/Home.jsx) -- wire up new components, chat state\n",
+  "todos": [
+    {
+      "content": "Remove duplicate blocking in canvas.py, add similarity warning. Update autolink.py _connection_exists to description-similarity check.",
+      "id": "multi-conn-backend",
+      "status": "pending"
+    },
+    {
+      "content": "Update Canvas.jsx to allow multiple connections, ConnectionLine.jsx for parallel line offsets, ConnectionModal.jsx for multi-connection navigation.",
+      "id": "multi-conn-frontend",
+      "status": "pending"
+    },
+    {
+      "content": "Create AutoLinkPanel.jsx with overall prompt textarea + guided rules list. Update autolink.py to accept overall_prompt and guided_rules. Wire into Home.jsx.",
+      "id": "autolink-panel",
+      "status": "pending"
+    },
+    {
+      "content": "Create chat.py blueprint with POST /api/chat endpoint using Claude API with document context and citation parsing. Register in __init__.py.",
+      "id": "chat-backend",
+      "status": "pending"
+    },
+    {
+      "content": "Create ChatSidebar.jsx with slide-out panel, message list, citation chips, input area. Wire into Home.jsx with chat state, send handler, and citation-click handler.",
+      "id": "chat-frontend",
+      "status": "pending"
+    }
+  ]
+}
+```
+Additional data:
+
+```json
+{
+  "hasOpenedEditor": true,
+  "planId": "connections_chat_autolink_2447868d",
+  "planUri": "file:///Users/kvg2005/.cursor/plans/connections_chat_autolink_2447868d.plan.md",
+  "reviewData": {
+    "isShowingInput": false,
+    "selectedOption": "none",
+    "status": "Requested"
+  }
+}
+```
+Result:
+
+```json
+{
+  "rejected": {}
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="create_plan"><details>
+<summary>Tool use: **create_plan**</summary>
+
+</details></tool-use>
+
+---
+
+_**User**_
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<think><details><summary>Thought Process</summary>
+Let me start by reading all the files I need to modify, then implement each todo in order.</details></think>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Let me start by reading all the files I need to modify.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Remove duplicate blocking in canvas.py, add similarity warning. Update autolink.py _connection_exists to description-similarity check.",
+      "id": "multi-conn-backend",
+      "status": "in_progress"
+    },
+    {
+      "content": "Update Canvas.jsx to allow multiple connections, ConnectionLine.jsx for parallel line offsets, ConnectionModal.jsx for multi-connection navigation.",
+      "id": "multi-conn-frontend",
+      "status": "pending"
+    },
+    {
+      "content": "Create AutoLinkPanel.jsx with overall prompt textarea + guided rules list. Update autolink.py to accept overall_prompt and guided_rules. Wire into Home.jsx.",
+      "id": "autolink-panel",
+      "status": "pending"
+    },
+    {
+      "content": "Create chat.py blueprint with POST /api/chat endpoint using Claude API with document context and citation parsing. Register in __init__.py.",
+      "id": "chat-backend",
+      "status": "pending"
+    },
+    {
+      "content": "Create ChatSidebar.jsx with slide-out panel, message list, citation chips, input area. Wire into Home.jsx with chat state, send handler, and citation-click handler.",
+      "id": "chat-frontend",
+      "status": "pending"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Remove duplicate blocking in canvas.py, add similarity warning. Update autolink.py _connection_exists to description-similarity check.",
+      "id": "multi-conn-backend",
+      "status": "pending"
+    },
+    {
+      "content": "Update Canvas.jsx to allow multiple connections, ConnectionLine.jsx for parallel line offsets, ConnectionModal.jsx for multi-connection navigation.",
+      "id": "multi-conn-frontend",
+      "status": "pending"
+    },
+    {
+      "content": "Create AutoLinkPanel.jsx with overall prompt textarea + guided rules list. Update autolink.py to accept overall_prompt and guided_rules. Wire into Home.jsx.",
+      "id": "autolink-panel",
+      "status": "pending"
+    },
+    {
+      "content": "Create chat.py blueprint with POST /api/chat endpoint using Claude API with document context and citation parsing. Register in __init__.py.",
+      "id": "chat-backend",
+      "status": "pending"
+    },
+    {
+      "content": "Create ChatSidebar.jsx with slide-out panel, message list, citation chips, input area. Wire into Home.jsx with chat state, send handler, and citation-click handler.",
+      "id": "chat-frontend",
+      "status": "pending"
+    }
+  ],
+  "success": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/canvas.py</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/autolink.py</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/__init__.py</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Canvas.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/ConnectionLine.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/ConnectionModal.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/AutoLinkBar.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Good, I now have all the context I need. Let me implement each task in order.
+
+**Task 1: Multi-connection backend** -- Update `canvas.py` to remove duplicate blocking and add similarity warning, update `autolink.py` to use description-similarity instead of existence check.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/canvas.py</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now update `autolink.py` -- replace `_connection_exists` with a description-similarity check, and accept `overall_prompt` + `guided_rules`:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/autolink.py</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Remove duplicate blocking in canvas.py, add similarity warning. Update autolink.py _connection_exists to description-similarity check.",
+      "id": "multi-conn-backend",
+      "status": "completed"
+    },
+    {
+      "content": "Update Canvas.jsx to allow multiple connections, ConnectionLine.jsx for parallel line offsets, ConnectionModal.jsx for multi-connection navigation.",
+      "id": "multi-conn-frontend",
+      "status": "in_progress"
+    },
+    {
+      "content": "Create AutoLinkPanel.jsx with overall prompt textarea + guided rules list. Update autolink.py to accept overall_prompt and guided_rules. Wire into Home.jsx.",
+      "id": "autolink-panel",
+      "status": "pending"
+    },
+    {
+      "content": "Create chat.py blueprint with POST /api/chat endpoint using Claude API with document context and citation parsing. Register in __init__.py.",
+      "id": "chat-backend",
+      "status": "pending"
+    },
+    {
+      "content": "Create ChatSidebar.jsx with slide-out panel, message list, citation chips, input area. Wire into Home.jsx with chat state, send handler, and citation-click handler.",
+      "id": "chat-frontend",
+      "status": "pending"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Remove duplicate blocking in canvas.py, add similarity warning. Update autolink.py _connection_exists to description-similarity check.",
+      "id": "multi-conn-backend",
+      "status": "in_progress"
+    },
+    {
+      "content": "Update Canvas.jsx to allow multiple connections, ConnectionLine.jsx for parallel line offsets, ConnectionModal.jsx for multi-connection navigation.",
+      "id": "multi-conn-frontend",
+      "status": "pending"
+    },
+    {
+      "content": "Create AutoLinkPanel.jsx with overall prompt textarea + guided rules list. Update autolink.py to accept overall_prompt and guided_rules. Wire into Home.jsx.",
+      "id": "autolink-panel",
+      "status": "pending"
+    },
+    {
+      "content": "Create chat.py blueprint with POST /api/chat endpoint using Claude API with document context and citation parsing. Register in __init__.py.",
+      "id": "chat-backend",
+      "status": "pending"
+    },
+    {
+      "content": "Create ChatSidebar.jsx with slide-out panel, message list, citation chips, input area. Wire into Home.jsx with chat state, send handler, and citation-click handler.",
+      "id": "chat-frontend",
+      "status": "pending"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+**Task 2: Multi-connection frontend** -- Update Canvas.jsx, ConnectionLine.jsx, and ConnectionModal.jsx.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Canvas.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now update `ConnectionLine.jsx` with parallel line offsets using quadratic bezier curves:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/ConnectionLine.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now update `ConnectionModal.jsx` with multi-connection navigation:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/ConnectionModal.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Remove duplicate blocking in canvas.py, add similarity warning. Update autolink.py _connection_exists to description-similarity check.",
+      "id": "multi-conn-backend",
+      "status": "completed"
+    },
+    {
+      "content": "Update Canvas.jsx to allow multiple connections, ConnectionLine.jsx for parallel line offsets, ConnectionModal.jsx for multi-connection navigation.",
+      "id": "multi-conn-frontend",
+      "status": "completed"
+    },
+    {
+      "content": "Create AutoLinkPanel.jsx with overall prompt textarea + guided rules list. Update autolink.py to accept overall_prompt and guided_rules. Wire into Home.jsx.",
+      "id": "autolink-panel",
+      "status": "in_progress"
+    },
+    {
+      "content": "Create chat.py blueprint with POST /api/chat endpoint using Claude API with document context and citation parsing. Register in __init__.py.",
+      "id": "chat-backend",
+      "status": "pending"
+    },
+    {
+      "content": "Create ChatSidebar.jsx with slide-out panel, message list, citation chips, input area. Wire into Home.jsx with chat state, send handler, and citation-click handler.",
+      "id": "chat-frontend",
+      "status": "pending"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Remove duplicate blocking in canvas.py, add similarity warning. Update autolink.py _connection_exists to description-similarity check.",
+      "id": "multi-conn-backend",
+      "status": "completed"
+    },
+    {
+      "content": "Update Canvas.jsx to allow multiple connections, ConnectionLine.jsx for parallel line offsets, ConnectionModal.jsx for multi-connection navigation.",
+      "id": "multi-conn-frontend",
+      "status": "in_progress"
+    },
+    {
+      "content": "Create AutoLinkPanel.jsx with overall prompt textarea + guided rules list. Update autolink.py to accept overall_prompt and guided_rules. Wire into Home.jsx.",
+      "id": "autolink-panel",
+      "status": "pending"
+    },
+    {
+      "content": "Create chat.py blueprint with POST /api/chat endpoint using Claude API with document context and citation parsing. Register in __init__.py.",
+      "id": "chat-backend",
+      "status": "pending"
+    },
+    {
+      "content": "Create ChatSidebar.jsx with slide-out panel, message list, citation chips, input area. Wire into Home.jsx with chat state, send handler, and citation-click handler.",
+      "id": "chat-frontend",
+      "status": "pending"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+**Task 3: AutoLinkPanel** -- Create the new panel replacing AutoLinkBar. Backend already updated in autolink.py.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/AutoLinkPanel.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Remove duplicate blocking in canvas.py, add similarity warning. Update autolink.py _connection_exists to description-similarity check.",
+      "id": "multi-conn-backend",
+      "status": "completed"
+    },
+    {
+      "content": "Update Canvas.jsx to allow multiple connections, ConnectionLine.jsx for parallel line offsets, ConnectionModal.jsx for multi-connection navigation.",
+      "id": "multi-conn-frontend",
+      "status": "completed"
+    },
+    {
+      "content": "Create AutoLinkPanel.jsx with overall prompt textarea + guided rules list. Update autolink.py to accept overall_prompt and guided_rules. Wire into Home.jsx.",
+      "id": "autolink-panel",
+      "status": "completed"
+    },
+    {
+      "content": "Create chat.py blueprint with POST /api/chat endpoint using Claude API with document context and citation parsing. Register in __init__.py.",
+      "id": "chat-backend",
+      "status": "in_progress"
+    },
+    {
+      "content": "Create ChatSidebar.jsx with slide-out panel, message list, citation chips, input area. Wire into Home.jsx with chat state, send handler, and citation-click handler.",
+      "id": "chat-frontend",
+      "status": "pending"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Remove duplicate blocking in canvas.py, add similarity warning. Update autolink.py _connection_exists to description-similarity check.",
+      "id": "multi-conn-backend",
+      "status": "completed"
+    },
+    {
+      "content": "Update Canvas.jsx to allow multiple connections, ConnectionLine.jsx for parallel line offsets, ConnectionModal.jsx for multi-connection navigation.",
+      "id": "multi-conn-frontend",
+      "status": "completed"
+    },
+    {
+      "content": "Create AutoLinkPanel.jsx with overall prompt textarea + guided rules list. Update autolink.py to accept overall_prompt and guided_rules. Wire into Home.jsx.",
+      "id": "autolink-panel",
+      "status": "in_progress"
+    },
+    {
+      "content": "Create chat.py blueprint with POST /api/chat endpoint using Claude API with document context and citation parsing. Register in __init__.py.",
+      "id": "chat-backend",
+      "status": "pending"
+    },
+    {
+      "content": "Create ChatSidebar.jsx with slide-out panel, message list, citation chips, input area. Wire into Home.jsx with chat state, send handler, and citation-click handler.",
+      "id": "chat-frontend",
+      "status": "pending"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+**Task 4: Chat backend** -- Create `chat.py` and register it.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/chat.py</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now register the chat blueprint in `__init__.py`:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/__init__.py</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Remove duplicate blocking in canvas.py, add similarity warning. Update autolink.py _connection_exists to description-similarity check.",
+      "id": "multi-conn-backend",
+      "status": "completed"
+    },
+    {
+      "content": "Update Canvas.jsx to allow multiple connections, ConnectionLine.jsx for parallel line offsets, ConnectionModal.jsx for multi-connection navigation.",
+      "id": "multi-conn-frontend",
+      "status": "completed"
+    },
+    {
+      "content": "Create AutoLinkPanel.jsx with overall prompt textarea + guided rules list. Update autolink.py to accept overall_prompt and guided_rules. Wire into Home.jsx.",
+      "id": "autolink-panel",
+      "status": "completed"
+    },
+    {
+      "content": "Create chat.py blueprint with POST /api/chat endpoint using Claude API with document context and citation parsing. Register in __init__.py.",
+      "id": "chat-backend",
+      "status": "completed"
+    },
+    {
+      "content": "Create ChatSidebar.jsx with slide-out panel, message list, citation chips, input area. Wire into Home.jsx with chat state, send handler, and citation-click handler.",
+      "id": "chat-frontend",
+      "status": "in_progress"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Remove duplicate blocking in canvas.py, add similarity warning. Update autolink.py _connection_exists to description-similarity check.",
+      "id": "multi-conn-backend",
+      "status": "completed"
+    },
+    {
+      "content": "Update Canvas.jsx to allow multiple connections, ConnectionLine.jsx for parallel line offsets, ConnectionModal.jsx for multi-connection navigation.",
+      "id": "multi-conn-frontend",
+      "status": "completed"
+    },
+    {
+      "content": "Create AutoLinkPanel.jsx with overall prompt textarea + guided rules list. Update autolink.py to accept overall_prompt and guided_rules. Wire into Home.jsx.",
+      "id": "autolink-panel",
+      "status": "completed"
+    },
+    {
+      "content": "Create chat.py blueprint with POST /api/chat endpoint using Claude API with document context and citation parsing. Register in __init__.py.",
+      "id": "chat-backend",
+      "status": "in_progress"
+    },
+    {
+      "content": "Create ChatSidebar.jsx with slide-out panel, message list, citation chips, input area. Wire into Home.jsx with chat state, send handler, and citation-click handler.",
+      "id": "chat-frontend",
+      "status": "pending"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+**Task 5: Chat frontend** -- Create ChatSidebar.jsx and wire everything into Home.jsx.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/ChatSidebar.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now wire everything into Home.jsx -- replace AutoLinkBar with AutoLinkPanel, add chat state, and add ChatSidebar:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now let me check for linter errors and restart the servers:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "frontend/src/pages/Home.jsx",
+    "frontend/src/components/Canvas.jsx",
+    "frontend/src/components/ConnectionLine.jsx",
+    "frontend/src/components/ConnectionModal.jsx",
+    "frontend/src/components/AutoLinkPanel.jsx",
+    "frontend/src/components/ChatSidebar.jsx"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "frontend/src/pages/Home.jsx"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/components/Canvas.jsx"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/components/ConnectionLine.jsx"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/components/ConnectionModal.jsx"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/components/AutoLinkPanel.jsx"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/components/ChatSidebar.jsx"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Clean. Let me restart both servers:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: lsof -ti:5001 | xargs kill -9 2>/dev/null; lsof -ti:5173 | xargs kill -9 2>/dev/null; sleep 1; echo "Ports freed"</summary>
+
+```bash
+lsof -ti:5001 | xargs kill -9 2>/dev/null; lsof -ti:5173 | xargs kill -9 2>/dev/null; sleep 1; echo "Ports freed"
+```
+
+```
+Ports freed
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend && source venv/bin/activate && python run.py</summary>
+
+```bash
+cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend && source venv/bin/activate && python run.py
+```
+
+```
+ * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 342-700-901
+127.0.0.1 - - [10/Apr/2026 22:25:02] "[31m[1mGET /api/auth/me HTTP/1.1[0m" 401 -
+127.0.0.1 - - [10/Apr/2026 22:25:02] "[31m[1mGET /api/auth/me HTTP/1.1[0m" 401 -
+]633;C * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 342-700-901
+127.0.0.1 - - [10/Apr/2026 22:25:02] "[31m[1mGET /api/auth/me HTTP/1.1[0m" 401 -
+127.0.0.1 - - [10/Apr/2026 22:25:02] "[31m[1mGET /api/auth/me HTTP/1.1[0m" 401 -
+127.0.0.1 - - [10/Apr/2026 22:25:23] "[31m[1mGET /api/auth/me HTTP/1.1[0m" 401 -
+127.0.0.1 - - [10/Apr/2026 22:25:23] "[31m[1mGET /api/auth/me HTTP/1.1[0m" 401 -
+127.0.0.1 - - [10/Apr/2026 22:25:34] "POST /api/auth/login HTTP/1.1" 200 -
+127.0.0.1 - - [10/Apr/2026 22:25:34] "GET /api/documents HTTP/1.1" 200 -
+127.0.0.1 - - [10/Apr/2026 22:25:34] "GET /api/connections HTTP/1.1" 200 -
+127.0.0.1 - - [10/Apr/2026 22:25:34] "GET /api/documents HTTP/1.1" 200 -
+127.0.0.1 - - [10/Apr/2026 22:25:34] "GET /api/connections HTTP/1.1" 200 -
+127.0.0.1 - - [10/Apr/2026 22:25:35] "[36mGET /api/documents/2/thumbnail HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Apr/2026 22:25:35] "[36mGET /api/documents/1/thumbnail HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Apr/2026 22:25:35] "[36mGET /api/documents/5/thumbnail HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Apr/2026 22:25:35] "[36mGET /api/documents/4/thumbnail HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Apr/2026 22:25:35] "[36mGET /api/documents/3/thumbnail HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Apr/2026 22:25:35] "[36mGET /api/documents/8/thumbnail HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Apr/2026 22:25:35] "[36mGET /api/documents/7/thumbnail HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Apr/2026 22:25:35] "[36mGET /api/documents/11/thumbnail HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Apr/2026 22:25:35] "[36mGET /api/documents/9/thumbnail HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Apr/2026 22:25:35] "[36mGET /api/documents/12/thumbnail HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Apr/2026 22:25:35] "[36mGET /api/documents/13/thumbnail HTTP/1.1[0m" 304 -
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend && npm run dev</summary>
+
+```bash
+cd /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend && npm run dev
+```
+
+```
+npm warn Unknown env config "devdir". This will stop working in the next major version of npm.
+
+&gt; frontend@0.0.0 dev
+&gt; vite
+
+
+  VITE v8.0.8  ready in 284 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+]633;Cnpm warn Unknown env config "devdir". This will stop working in the next major version of npm.
+
+&gt; frontend@0.0.0 dev
+&gt; vite
+
+
+  VITE v8.0.8  ready in 284 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Remove duplicate blocking in canvas.py, add similarity warning. Update autolink.py _connection_exists to description-similarity check.",
+      "id": "multi-conn-backend",
+      "status": "completed"
+    },
+    {
+      "content": "Update Canvas.jsx to allow multiple connections, ConnectionLine.jsx for parallel line offsets, ConnectionModal.jsx for multi-connection navigation.",
+      "id": "multi-conn-frontend",
+      "status": "completed"
+    },
+    {
+      "content": "Create AutoLinkPanel.jsx with overall prompt textarea + guided rules list. Update autolink.py to accept overall_prompt and guided_rules. Wire into Home.jsx.",
+      "id": "autolink-panel",
+      "status": "completed"
+    },
+    {
+      "content": "Create chat.py blueprint with POST /api/chat endpoint using Claude API with document context and citation parsing. Register in __init__.py.",
+      "id": "chat-backend",
+      "status": "completed"
+    },
+    {
+      "content": "Create ChatSidebar.jsx with slide-out panel, message list, citation chips, input area. Wire into Home.jsx with chat state, send handler, and citation-click handler.",
+      "id": "chat-frontend",
+      "status": "completed"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Remove duplicate blocking in canvas.py, add similarity warning. Update autolink.py _connection_exists to description-similarity check.",
+      "id": "multi-conn-backend",
+      "status": "completed"
+    },
+    {
+      "content": "Update Canvas.jsx to allow multiple connections, ConnectionLine.jsx for parallel line offsets, ConnectionModal.jsx for multi-connection navigation.",
+      "id": "multi-conn-frontend",
+      "status": "completed"
+    },
+    {
+      "content": "Create AutoLinkPanel.jsx with overall prompt textarea + guided rules list. Update autolink.py to accept overall_prompt and guided_rules. Wire into Home.jsx.",
+      "id": "autolink-panel",
+      "status": "completed"
+    },
+    {
+      "content": "Create chat.py blueprint with POST /api/chat endpoint using Claude API with document context and citation parsing. Register in __init__.py.",
+      "id": "chat-backend",
+      "status": "completed"
+    },
+    {
+      "content": "Create ChatSidebar.jsx with slide-out panel, message list, citation chips, input area. Wire into Home.jsx with chat state, send handler, and citation-click handler.",
+      "id": "chat-frontend",
+      "status": "in_progress"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+All 5 tasks are complete and both servers are running. Here's a summary of everything implemented:
+
+### 1. Multiple Connections Between Documents
+
+**Backend (`canvas.py`):**
+- Removed the 409 duplicate-blocking logic. Multiple connections between the same pair are now allowed.
+- Returns a `warning` field in the response when existing connections already exist between the pair, so the user is informed.
+
+**Backend (`autolink.py`):**
+- Replaced `_connection_exists()` with `_has_similar_description()` -- auto-link now only skips a connection if a near-identical description already exists between the pair.
+- Updated the Claude system prompt to explicitly allow multiple connections between the same pair for distinct themes.
+
+**Frontend (`Canvas.jsx`):**
+- Removed the client-side `alreadyExists` block. Connection creation always proceeds.
+- Computes per-pair index/total for each connection and passes `pairIndex`/`pairTotal` to `ConnectionLine`.
+- Passes the full list of same-pair connections to `ConnectionModal` for navigation.
+
+**Frontend (`ConnectionLine.jsx`):**
+- Replaced straight `<line>` elements with quadratic bezier `<path>` elements. When multiple connections share the same pair, they fan out with perpendicular offsets so each line is visually distinct and individually clickable.
+
+**Frontend (`ConnectionModal.jsx`):**
+- Added prev/next navigation arrows and a "N connections between these documents" count when multiple connections exist for the same pair.
+
+### 2. Redesigned Auto-Link UI
+
+**New `AutoLinkPanel.jsx`** (replaces `AutoLinkBar.jsx`):
+- A centered modal overlay (~500px wide) with three sections:
+  - **Overall Context**: A textarea for describing the overall theme of the documents
+  - **Connection Guidelines**: A list of user-defined rules. Each rule is a text input with a remove button. An "Add rule" button appends new entries.
+  - **Footer**: Cancel and Analyze buttons
+
+**Backend (`autolink.py`):**
+- Accepts `overall_prompt` (string) and `guided_rules` (list of strings) in the request body
+- `overall_prompt` is appended to the system prompt as additional context
+- `guided_rules` are numbered and appended to the user message
+
+### 3. Chat Sidebar
+
+**Backend (`chat.py`):**
+- New `POST /api/chat` endpoint that accepts `{ message, history }` for multi-turn conversation
+- Extracts text from ALL user documents using `_extract_text_full()` (a new helper that extracts up to 6000 chars per doc with page markers)
+- Builds a Claude system prompt with all document contents and instructs citation format: `[DOC:id:page:"quote"]`
+- Parses citations from the response and returns them alongside the reply
+
+**Frontend (`ChatSidebar.jsx`):**
+- A right-edge slide-out panel (380px wide) with a visible tab handle on the right edge when closed
+- **Messages area**: Scrollable list of user/assistant messages with distinct styling
+- **Citation chips**: Inline clickable badges that replace `[DOC:id:page:"quote"]` markers, showing document name and page number
+- **Input area**: Text input with Enter-to-send and a send button
+- Clicking a citation chip opens the `DocumentViewer` at the relevant page with the quote highlighted
+
+**Home.jsx:**
+- Manages `chatOpen`, `chatMessages`, `chatLoading` state
+- `handleChatSend` sends messages to `/api/chat` with full conversation history
+- `handleCitationClick` opens `DocumentViewer` with the cited document, page, and quote
+
+---
+
+_**User**_
+
+the changes look great but im unable to select documents in the auto link menu and the chatbot output isnt formatted correctly
+
+---
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Let me investigate both issues by reading the current state of the relevant files.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/AutoLinkPanel.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/ChatSidebar.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/DocumentNode.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<think><details><summary>Thought Process</summary>
+I can see two issues:
+
+1. **Auto-Link selection issue**: When the user clicks "Auto-Link" in the Navbar, `selectMode` becomes `true` and the `AutoLinkPanel` modal</details></think>

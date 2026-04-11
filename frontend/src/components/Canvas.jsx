@@ -4,6 +4,10 @@ import DocumentNode from './DocumentNode';
 import ConnectionLine from './ConnectionLine';
 import ConnectionModal from './ConnectionModal';
 
+function pairKey(a, b) {
+  return [Math.min(a, b), Math.max(a, b)].join(':');
+}
+
 export default function Canvas({
   docs, setDocs, connections, setConnections,
   connectMode, setConnectMode, onViewDoc,
@@ -14,6 +18,19 @@ export default function Canvas({
   const [activeConn, setActiveConn] = useState(null);
   const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
   const canvasRef = useRef(null);
+
+  const pairIndexMap = {};
+  const pairCounts = {};
+  connections.forEach(c => {
+    const key = pairKey(c.source_doc_id, c.target_doc_id);
+    pairCounts[key] = (pairCounts[key] || 0) + 1;
+  });
+  connections.forEach(c => {
+    const key = pairKey(c.source_doc_id, c.target_doc_id);
+    if (!pairIndexMap[key]) pairIndexMap[key] = 0;
+    c._pairIndex = pairIndexMap[key]++;
+    c._pairTotal = pairCounts[key];
+  });
 
   const handlePositionChange = useCallback((id, x, y, persist) => {
     setDocs(prev => prev.map(d => d.id === id ? { ...d, position_x: x, position_y: y } : d));
@@ -47,29 +64,21 @@ export default function Canvas({
       return;
     }
 
-    const alreadyExists = connections.some(
-      c => (c.source_doc_id === connectFirst && c.target_doc_id === id) ||
-           (c.source_doc_id === id && c.target_doc_id === connectFirst)
-    );
-    if (alreadyExists) {
-      onToast?.('These two documents are already connected', 'error');
-      setConnectFirst(null);
-      setConnectMode(false);
-      return;
-    }
-
     try {
       const res = await api.post('/connections', {
         source_doc_id: connectFirst,
         target_doc_id: id,
       });
       setConnections(prev => [...prev, res.data]);
+      if (res.data.warning) {
+        onToast?.(res.data.warning, 'info');
+      }
     } catch {
       onToast?.('Failed to create connection', 'error');
     }
     setConnectFirst(null);
     setConnectMode(false);
-  }, [connectMode, connectFirst, connections, setConnections, setConnectMode, onToast]);
+  }, [connectMode, connectFirst, setConnections, setConnectMode, onToast]);
 
   const handleLineClick = (conn) => {
     const src = docs.find(d => d.id === conn.source_doc_id);
@@ -104,15 +113,16 @@ export default function Canvas({
     setActiveConn(null);
   };
 
+  const pairConnsForActive = activeConn
+    ? connections.filter(c => pairKey(c.source_doc_id, c.target_doc_id) === pairKey(activeConn.source_doc_id, activeConn.target_doc_id))
+    : [];
+
+  const handleNavConn = (conn) => {
+    setActiveConn(conn);
+  };
+
   const maxX = docs.reduce((m, d) => Math.max(m, d.position_x + 200), 1200);
   const maxY = docs.reduce((m, d) => Math.max(m, d.position_y + 200), 800);
-
-  const scrollToDoc = useCallback((doc) => {
-    const el = canvasRef.current?.querySelector(`[data-doc-id="${doc.id}"]`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-    }
-  }, []);
 
   return (
     <div
@@ -120,7 +130,6 @@ export default function Canvas({
       className="relative flex-1 overflow-auto bg-surface-900"
       onClick={handleCanvasClick}
     >
-      {/* Subtle grid pattern */}
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
@@ -130,7 +139,6 @@ export default function Canvas({
       />
 
       <div className="relative" style={{ minWidth: maxX, minHeight: maxY }}>
-        {/* SVG layer for connections */}
         <svg
           className="absolute inset-0 pointer-events-none"
           style={{ width: maxX, height: maxY }}
@@ -144,12 +152,13 @@ export default function Canvas({
                 onClick={handleLineClick}
                 animateIn={newConnIds?.has(conn.id)}
                 colorIndex={idx}
+                pairIndex={conn._pairIndex || 0}
+                pairTotal={conn._pairTotal || 1}
               />
             ))}
           </g>
         </svg>
 
-        {/* Document nodes */}
         {docs.map(doc => (
           <DocumentNode
             key={doc.id}
@@ -170,7 +179,6 @@ export default function Canvas({
           />
         ))}
 
-        {/* Connection description modal */}
         {activeConn && (
           <ConnectionModal
             conn={activeConn}
@@ -179,10 +187,11 @@ export default function Canvas({
             onSave={handleSaveConn}
             onDelete={handleDeleteConn}
             onClose={() => setActiveConn(null)}
+            pairConns={pairConnsForActive}
+            onNavConn={handleNavConn}
           />
         )}
 
-        {/* Empty state */}
         {docs.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
