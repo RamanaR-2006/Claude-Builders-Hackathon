@@ -177,7 +177,7 @@ def serve_file(doc_id):
                 rects = page.search_for(highlight)
                 for rect in rects:
                     annot = page.add_highlight_annot(rect)
-                    annot.set_colors(stroke=(0.545, 0.361, 0.965))  # gem purple
+                    annot.set_colors(stroke=(0.976, 0.573, 0.235))  # lava orange
                     annot.update()
             buf = io.BytesIO()
             pdf.save(buf)

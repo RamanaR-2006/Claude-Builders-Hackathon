@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FileText, Film, Music, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 const TYPE_ICONS = { pdf: FileText, video: Film, audio: Music };
-const TYPE_COLORS = { pdf: 'text-ruby-400', video: 'text-gem-400', audio: 'text-emerald-400' };
+const TYPE_COLORS = { pdf: 'text-magma-400', video: 'text-lava-400', audio: 'text-ember-400' };
 
 function HighlightedSnippet({ text, query }) {
   if (!text || !query) return null;
@@ -11,7 +11,7 @@ function HighlightedSnippet({ text, query }) {
     <p className="text-xs text-gray-400 mt-1 leading-relaxed">
       {parts.map((part, i) =>
         part.toLowerCase() === query.toLowerCase()
-          ? <mark key={i} className="bg-gem-500/30 text-gem-400 rounded px-0.5">{part}</mark>
+          ? <mark key={i} className="bg-lava-500/30 text-lava-400 rounded px-0.5">{part}</mark>
           : part
       )}
     </p>
@@ -28,7 +28,7 @@ function MatchRow({ match, result, query, onSelect, Icon, iconColor }) {
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-gray-200 truncate">{result.original_name}</p>
         {match.page && (
-          <span className="text-[10px] font-medium text-gem-400 bg-gem-500/10 rounded px-1.5 py-0.5 inline-block mt-1">
+          <span className="text-[10px] font-medium text-lava-400 bg-lava-500/10 rounded px-1.5 py-0.5 inline-block mt-1">
             Page {match.page}
           </span>
         )}
@@ -69,7 +69,7 @@ function DocumentGroup({ result, query, onSelect }) {
       {hasMore && (
         <button
           onClick={() => setExpanded(prev => !prev)}
-          className="w-full flex items-center gap-1.5 px-4 py-2 text-[11px] font-medium text-gem-400 hover:text-gem-400/80 hover:bg-surface-700/50 transition cursor-pointer"
+          className="w-full flex items-center gap-1.5 px-4 py-2 text-[11px] font-medium text-lava-400 hover:text-lava-400/80 hover:bg-surface-700/50 transition cursor-pointer"
         >
           {expanded ? (
             <>

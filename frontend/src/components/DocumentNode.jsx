@@ -8,9 +8,9 @@ const TYPE_ICONS = {
 };
 
 const TYPE_COLORS = {
-  pdf: 'text-ruby-400',
-  video: 'text-gem-400',
-  audio: 'text-emerald-400',
+  pdf: 'text-magma-400',
+  video: 'text-lava-400',
+  audio: 'text-ember-400',
 };
 
 export default function DocumentNode({
@@ -109,9 +109,9 @@ export default function DocumentNode({
       <div
         className={`rounded-xl border transition-all overflow-hidden ${
           isSelected
-            ? 'bg-surface-700 border-gem-500 shadow-lg shadow-gem-500/20 ring-2 ring-gem-500/30 animate-pulse-gem'
+            ? 'bg-surface-700 border-lava-500 shadow-lg shadow-lava-500/20 ring-2 ring-lava-500/30 animate-pulse-lava'
             : selected
-              ? 'bg-surface-700 border-cyan-500 shadow-lg shadow-cyan-500/20 ring-2 ring-cyan-500/30'
+              ? 'bg-surface-700 border-molten-400 shadow-lg shadow-molten-400/20 ring-2 ring-molten-400/30'
               : 'bg-surface-800 border-surface-600 shadow-md shadow-black/30 hover:border-surface-500 hover:shadow-lg hover:shadow-black/40'
         }`}
       >
@@ -136,7 +136,7 @@ export default function DocumentNode({
           <div className="absolute top-1.5 left-1.5">
             <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
               isSelected
-                ? 'bg-gem-600 border-gem-500'
+                ? 'bg-lava-600 border-lava-500'
                 : 'bg-surface-800/80 border-surface-500'
             }`}>
               {isSelected && <Check size={12} className="text-white" />}
@@ -150,7 +150,7 @@ export default function DocumentNode({
             <button
               onPointerDown={e => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onView(doc); }}
-              className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-gem-400 cursor-pointer"
+              className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-lava-400 cursor-pointer"
               title="View"
             >
               <Eye size={13} />
@@ -158,7 +158,7 @@ export default function DocumentNode({
             <button
               onPointerDown={e => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onToggleLock(doc.id); }}
-              className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-cyan-400 cursor-pointer"
+              className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-molten-400 cursor-pointer"
               title={doc.is_locked ? 'Unlock' : 'Lock'}
             >
               {doc.is_locked ? <Lock size={13} /> : <Unlock size={13} />}
@@ -166,7 +166,7 @@ export default function DocumentNode({
             <button
               onPointerDown={e => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onDelete(doc.id); }}
-              className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-ruby-400 cursor-pointer"
+              className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-magma-400 cursor-pointer"
               title="Delete"
             >
               <Trash2 size={13} />
@@ -177,7 +177,7 @@ export default function DocumentNode({
         {/* Lock indicator */}
         {doc.is_locked && !selectMode && (
           <div className="absolute top-1.5 left-1.5">
-            <Lock size={11} className="text-cyan-400" />
+            <Lock size={11} className="text-molten-400" />
           </div>
         )}
       </div>

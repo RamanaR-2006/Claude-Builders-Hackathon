@@ -8,7 +8,7 @@ export default function Canvas({
   docs, setDocs, connections, setConnections,
   connectMode, setConnectMode, onViewDoc,
   selectMode, selectedIds, onToggleSelect,
-  animating, newConnIds,
+  animating, newConnIds, onToast,
 }) {
   const [connectFirst, setConnectFirst] = useState(null);
   const [activeConn, setActiveConn] = useState(null);
@@ -52,6 +52,7 @@ export default function Canvas({
            (c.source_doc_id === id && c.target_doc_id === connectFirst)
     );
     if (alreadyExists) {
+      onToast?.('These two documents are already connected', 'error');
       setConnectFirst(null);
       setConnectMode(false);
       return;
@@ -64,11 +65,11 @@ export default function Canvas({
       });
       setConnections(prev => [...prev, res.data]);
     } catch {
-      // backend 409 if duplicate slipped through
+      onToast?.('Failed to create connection', 'error');
     }
     setConnectFirst(null);
     setConnectMode(false);
-  }, [connectMode, connectFirst, connections, setConnections, setConnectMode]);
+  }, [connectMode, connectFirst, connections, setConnections, setConnectMode, onToast]);
 
   const handleLineClick = (conn) => {
     const src = docs.find(d => d.id === conn.source_doc_id);
@@ -106,6 +107,13 @@ export default function Canvas({
   const maxX = docs.reduce((m, d) => Math.max(m, d.position_x + 200), 1200);
   const maxY = docs.reduce((m, d) => Math.max(m, d.position_y + 200), 800);
 
+  const scrollToDoc = useCallback((doc) => {
+    const el = canvasRef.current?.querySelector(`[data-doc-id="${doc.id}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    }
+  }, []);
+
   return (
     <div
       ref={canvasRef}
@@ -114,9 +122,9 @@ export default function Canvas({
     >
       {/* Subtle grid pattern */}
       <div
-        className="absolute inset-0 opacity-[0.04]"
+        className="absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: 'radial-gradient(circle, #a78bfa 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(circle, #fb923c 1px, transparent 1px)',
           backgroundSize: '32px 32px',
         }}
       />
@@ -128,13 +136,14 @@ export default function Canvas({
           style={{ width: maxX, height: maxY }}
         >
           <g className="pointer-events-auto">
-            {connections.map(conn => (
+            {connections.map((conn, idx) => (
               <ConnectionLine
                 key={conn.id}
                 conn={conn}
                 docs={docs}
                 onClick={handleLineClick}
                 animateIn={newConnIds?.has(conn.id)}
+                colorIndex={idx}
               />
             ))}
           </g>
@@ -176,7 +185,7 @@ export default function Canvas({
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
               <p className="text-gray-600 text-lg font-medium">No documents yet</p>
-              <p className="text-gray-600 text-sm mt-1">Click Upload to get started</p>
+              <p className="text-gray-600 text-sm mt-1">Click the upload button to get started</p>
             </div>
           </div>
         )}

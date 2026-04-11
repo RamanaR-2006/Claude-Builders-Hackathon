@@ -11,6 +11,12 @@ autolink_bp = Blueprint("autolink", __name__)
 
 MAX_CHARS_PER_DOC = 2000
 
+NODE_W = 160
+NODE_H = 130
+NODE_PAD = 50
+CELL_W = NODE_W + NODE_PAD
+CELL_H = NODE_H + NODE_PAD
+
 
 def _extract_text(doc, upload_dir):
     """Extract searchable text from a document."""
@@ -35,17 +41,99 @@ def _extract_text(doc, upload_dir):
     return f'[File: "{doc.original_name}" (type: {doc.file_type})]'
 
 
-def _compute_layout(doc_ids, center_x=500, center_y=400, radius_x=300, radius_y=220):
-    """Arrange documents in an ellipse."""
-    n = len(doc_ids)
-    if n == 0:
-        return {}
+def _find_clusters(doc_ids, connections):
+    """Find connected components among doc_ids given connections."""
+    adj = {d: set() for d in doc_ids}
+    id_set = set(doc_ids)
+    for c in connections:
+        s, t = c.source_doc_id, c.target_doc_id
+        if s in id_set and t in id_set:
+            adj[s].add(t)
+            adj[t].add(s)
+
+    visited = set()
+    clusters = []
+    for d in doc_ids:
+        if d in visited:
+            continue
+        cluster = []
+        stack = [d]
+        while stack:
+            node = stack.pop()
+            if node in visited:
+                continue
+            visited.add(node)
+            cluster.append(node)
+            for nb in adj[node]:
+                if nb not in visited:
+                    stack.append(nb)
+        clusters.append(cluster)
+    return clusters
+
+
+def _layout_cluster_circle(ids, cx, cy):
+    """Lay out a cluster of doc IDs in a circle centered at (cx, cy)."""
+    n = len(ids)
+    if n == 1:
+        return {str(ids[0]): {"x": round(cx), "y": round(cy)}}
+
+    min_spacing = max(CELL_W, CELL_H)
+    radius = max(min_spacing, (n * min_spacing) / (2 * math.pi))
+
     positions = {}
-    for i, doc_id in enumerate(doc_ids):
+    for i, doc_id in enumerate(ids):
         angle = (2 * math.pi * i / n) - math.pi / 2
-        x = center_x + radius_x * math.cos(angle)
-        y = center_y + radius_y * math.sin(angle)
+        x = cx + radius * math.cos(angle)
+        y = cy + radius * math.sin(angle)
         positions[str(doc_id)] = {"x": round(x), "y": round(y)}
+    return positions
+
+
+def _compute_smart_layout(all_doc_ids, connections, start_x=120, start_y=120):
+    """Lay out documents with no overlaps. Connected clusters form circles, arranged in a grid of clusters."""
+    clusters = _find_clusters(all_doc_ids, connections)
+
+    positions = {}
+    cursor_x = start_x
+    cursor_y = start_y
+    row_height = 0
+    max_row_width = 1200
+
+    for cluster in clusters:
+        n = len(cluster)
+        if n == 1:
+            bbox_w = CELL_W
+            bbox_h = CELL_H
+        else:
+            min_spacing = max(CELL_W, CELL_H)
+            radius = max(min_spacing, (n * min_spacing) / (2 * math.pi))
+            bbox_w = 2 * radius + CELL_W
+            bbox_h = 2 * radius + CELL_H
+
+        if cursor_x + bbox_w > max_row_width and cursor_x > start_x:
+            cursor_x = start_x
+            cursor_y += row_height + NODE_PAD
+            row_height = 0
+
+        cx = cursor_x + bbox_w / 2
+        cy = cursor_y + bbox_h / 2
+
+        cluster_positions = _layout_cluster_circle(cluster, cx, cy)
+        positions.update(cluster_positions)
+
+        cursor_x += bbox_w + NODE_PAD
+        row_height = max(row_height, bbox_h)
+
+    # Ensure no position is negative
+    min_x = min((p["x"] for p in positions.values()), default=0)
+    min_y = min((p["y"] for p in positions.values()), default=0)
+    if min_x < 40 or min_y < 40:
+        dx = max(0, 40 - min_x)
+        dy = max(0, 40 - min_y)
+        for p in positions.values():
+            p["x"] = round(p["x"] + dx)
+            p["y"] = round(p["y"] + dy)
+
     return positions
 
 
@@ -108,7 +196,6 @@ def autolink():
         )
 
         response_text = message.content[0].text.strip()
-        # Extract JSON from response (handle markdown code blocks)
         if "```" in response_text:
             start = response_text.find("{")
             end = response_text.rfind("}") + 1
@@ -146,9 +233,14 @@ def autolink():
         db.session.flush()
         created_connections.append(conn.to_dict())
 
-    # Update positions
-    positions = _compute_layout([d.id for d in docs])
-    for doc in docs:
+    # Compute layout for ALL user documents using ALL connections
+    all_docs = Document.query.filter_by(user_id=current_user.id).all()
+    all_doc_ids = [d.id for d in all_docs]
+    all_connections = Connection.query.filter_by(user_id=current_user.id).all()
+
+    positions = _compute_smart_layout(all_doc_ids, all_connections)
+
+    for doc in all_docs:
         pos = positions.get(str(doc.id))
         if pos:
             doc.position_x = pos["x"]
@@ -160,3 +252,27 @@ def autolink():
         "connections": created_connections,
         "positions": positions,
     }, 200
+
+
+@autolink_bp.route("/organize", methods=["POST"])
+@login_required
+def organize():
+    """Reorganize all documents on the canvas with no overlapping thumbnails."""
+    all_docs = Document.query.filter_by(user_id=current_user.id).all()
+    if not all_docs:
+        return {"positions": {}}, 200
+
+    all_doc_ids = [d.id for d in all_docs]
+    all_connections = Connection.query.filter_by(user_id=current_user.id).all()
+
+    positions = _compute_smart_layout(all_doc_ids, all_connections)
+
+    for doc in all_docs:
+        pos = positions.get(str(doc.id))
+        if pos:
+            doc.position_x = pos["x"]
+            doc.position_y = pos["y"]
+
+    db.session.commit()
+
+    return {"positions": positions}, 200

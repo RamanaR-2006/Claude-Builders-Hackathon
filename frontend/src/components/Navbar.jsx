@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { LogOut, Link as LinkIcon, Plus, Search, Loader2, Sparkles } from 'lucide-react';
+import { LogOut, Search, Loader2, Sparkles, List, LayoutGrid } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function Navbar({ connectMode, onToggleConnect, onUpload, onSearch, searching, selectMode, onAutoLink }) {
+export default function Navbar({ onSearch, searching, selectMode, onAutoLink, onToggleSidebar, onOrganize, organizing }) {
   const { user, logout } = useAuth();
   const [query, setQuery] = useState('');
 
@@ -21,9 +21,17 @@ export default function Navbar({ connectMode, onToggleConnect, onUpload, onSearc
       <div className="flex items-center gap-4">
         <h1 className="text-lg font-bold tracking-tight text-white">Lattice</h1>
 
+        <button
+          onClick={onToggleSidebar}
+          className="p-1.5 rounded-lg text-gray-500 hover:text-lava-400 hover:bg-surface-600 transition cursor-pointer"
+          title="Document list"
+        >
+          <List size={18} />
+        </button>
+
         <div className="relative">
           {searching ? (
-            <Loader2 size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gem-400 animate-spin pointer-events-none" />
+            <Loader2 size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-lava-400 animate-spin pointer-events-none" />
           ) : (
             <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
           )}
@@ -35,8 +43,8 @@ export default function Navbar({ connectMode, onToggleConnect, onUpload, onSearc
             placeholder="Search documents…"
             className={`w-56 pl-8 pr-3 py-1.5 text-sm rounded-lg bg-surface-700 border text-white placeholder-gray-500 outline-none transition ${
               searching
-                ? 'border-gem-500/50 ring-2 ring-gem-500/20'
-                : 'border-surface-500 focus:border-gem-500 focus:ring-2 focus:ring-gem-500/20'
+                ? 'border-lava-500/50 ring-2 ring-lava-500/20'
+                : 'border-surface-500 focus:border-lava-500 focus:ring-2 focus:ring-lava-500/20'
             }`}
           />
         </div>
@@ -44,30 +52,20 @@ export default function Navbar({ connectMode, onToggleConnect, onUpload, onSearc
 
       <div className="flex items-center gap-2">
         <button
-          onClick={onUpload}
-          className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-gem-600 hover:bg-gem-500 text-white transition cursor-pointer"
+          onClick={onOrganize}
+          disabled={organizing}
+          className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-surface-600 text-gray-300 hover:bg-surface-500 transition cursor-pointer disabled:opacity-50"
+          title="Organize canvas"
         >
-          <Plus size={16} />
-          Upload
-        </button>
-
-        <button
-          onClick={onToggleConnect}
-          className={`flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg transition cursor-pointer ${
-            connectMode
-              ? 'bg-cyan-500/20 text-cyan-400 ring-2 ring-cyan-500/30'
-              : 'bg-surface-600 text-gray-300 hover:bg-surface-500'
-          }`}
-        >
-          <LinkIcon size={16} />
-          {connectMode ? 'Connecting…' : 'Connect'}
+          {organizing ? <Loader2 size={16} className="animate-spin" /> : <LayoutGrid size={16} />}
+          Organize
         </button>
 
         <button
           onClick={onAutoLink}
           className={`flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg transition cursor-pointer ${
             selectMode
-              ? 'bg-gem-500/20 text-gem-400 ring-2 ring-gem-500/30'
+              ? 'bg-lava-500/20 text-lava-400 ring-2 ring-lava-500/30'
               : 'bg-surface-600 text-gray-300 hover:bg-surface-500'
           }`}
         >

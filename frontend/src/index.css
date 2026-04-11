@@ -3,49 +3,43 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
-  /* Gem palette */
-  --color-surface-900: #0b0b14;
-  --color-surface-800: #111121;
-  --color-surface-700: #191930;
-  --color-surface-600: #22223d;
-  --color-surface-500: #2d2d4a;
+  /* Volcanic dark surfaces */
+  --color-surface-900: #0c0a08;
+  --color-surface-800: #17130f;
+  --color-surface-700: #231d17;
+  --color-surface-600: #302821;
+  --color-surface-500: #3d332b;
 
-  /* Amethyst accent */
-  --color-gem-400: #a78bfa;
-  --color-gem-500: #8b5cf6;
-  --color-gem-600: #7c3aed;
-  --color-gem-700: #6d28d9;
+  /* Lava orange – primary accent */
+  --color-lava-400: #fb923c;
+  --color-lava-500: #f97316;
+  --color-lava-600: #ea580c;
+  --color-lava-700: #c2410c;
 
-  /* Emerald accent */
-  --color-emerald-400: #34d399;
-  --color-emerald-500: #10b981;
+  /* Ember yellow – secondary */
+  --color-ember-400: #fbbf24;
+  --color-ember-500: #f59e0b;
 
-  /* Ruby accent */
-  --color-ruby-400: #fb7185;
-  --color-ruby-500: #f43f5e;
+  /* Magma red – error / destructive */
+  --color-magma-400: #f87171;
+  --color-magma-500: #ef4444;
 
-  /* Cyan / teal for lines */
-  --color-cyan-400: #22d3ee;
-  --color-cyan-500: #06b6d4;
+  /* Molten gold – connections / highlights */
+  --color-molten-400: #fcd34d;
+  --color-molten-500: #eab308;
 }
 
 body {
   margin: 0;
   background: var(--color-surface-900);
-  color: #e2e2f0;
+  color: #ede8e3;
   -webkit-font-smoothing: antialiased;
 }
 
 /* Auto-link animations */
 @keyframes line-draw-in {
-  from {
-    stroke-dashoffset: 1000;
-    opacity: 0;
-  }
-  to {
-    stroke-dashoffset: 0;
-    opacity: 1;
-  }
+  from { stroke-dashoffset: 1000; opacity: 0; }
+  to { stroke-dashoffset: 0; opacity: 1; }
 }
 
 @keyframes diamond-pop {
@@ -54,9 +48,19 @@ body {
   100% { transform: scale(1) rotate(45deg); opacity: 1; }
 }
 
-@keyframes pulse-gem {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
-  50% { box-shadow: 0 0 16px 4px rgba(139, 92, 246, 0.25); }
+@keyframes pulse-lava {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); }
+  50% { box-shadow: 0 0 16px 4px rgba(249, 115, 22, 0.25); }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(12px); }
 }
 
 .animate-line-draw {
@@ -69,6 +73,14 @@ body {
   animation: diamond-pop 0.4s ease-out forwards;
 }
 
-.animate-pulse-gem {
-  animation: pulse-gem 1.5s ease-in-out infinite;
+.animate-pulse-lava {
+  animation: pulse-lava 1.5s ease-in-out infinite;
+}
+
+.animate-toast-in {
+  animation: toast-in 0.3s ease-out forwards;
+}
+
+.animate-toast-out {
+  animation: toast-out 0.25s ease-in forwards;
 }

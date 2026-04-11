@@ -3,7 +3,6 @@ import { X, Download, FileText, Music } from 'lucide-react';
 export default function DocumentViewer({ doc, searchQuery, searchPage, onClose }) {
   const fileUrl = `/api/documents/${doc.id}/file`;
 
-  // For PDFs opened from search, serve a highlighted copy and jump to the page
   let pdfSrc = fileUrl;
   if (doc.file_type === 'pdf' && searchQuery) {
     const params = new URLSearchParams();
@@ -25,12 +24,12 @@ export default function DocumentViewer({ doc, searchQuery, searchPage, onClose }
           <div className="flex items-center gap-3 min-w-0 mr-4">
             <h2 className="text-sm font-semibold text-white truncate">{doc.original_name}</h2>
             {searchPage && (
-              <span className="shrink-0 text-[10px] font-medium text-gem-400 bg-gem-500/10 border border-gem-500/20 rounded-full px-2.5 py-0.5">
+              <span className="shrink-0 text-[10px] font-medium text-lava-400 bg-lava-500/10 border border-lava-500/20 rounded-full px-2.5 py-0.5">
                 Match on page {searchPage}
               </span>
             )}
             {searchQuery && !searchPage && (
-              <span className="shrink-0 text-[10px] font-medium text-gem-400 bg-gem-500/10 border border-gem-500/20 rounded-full px-2.5 py-0.5">
+              <span className="shrink-0 text-[10px] font-medium text-lava-400 bg-lava-500/10 border border-lava-500/20 rounded-full px-2.5 py-0.5">
                 Highlighted: {searchQuery}
               </span>
             )}
@@ -39,7 +38,7 @@ export default function DocumentViewer({ doc, searchQuery, searchPage, onClose }
             <a
               href={fileUrl}
               download={doc.original_name}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-gem-400 hover:bg-surface-600 transition cursor-pointer"
+              className="p-1.5 rounded-lg text-gray-400 hover:text-lava-400 hover:bg-surface-600 transition cursor-pointer"
               title="Download"
             >
               <Download size={16} />
@@ -78,8 +77,8 @@ export default function DocumentViewer({ doc, searchQuery, searchPage, onClose }
 
           {doc.file_type === 'audio' && (
             <div className="flex flex-col items-center justify-center p-12 gap-6">
-              <div className="w-24 h-24 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                <Music size={40} className="text-emerald-400" />
+              <div className="w-24 h-24 rounded-full bg-ember-500/10 flex items-center justify-center">
+                <Music size={40} className="text-ember-400" />
               </div>
               <p className="text-sm text-gray-400">{doc.original_name}</p>
               <audio src={fileUrl} controls autoPlay className="w-full max-w-md">
@@ -95,7 +94,7 @@ export default function DocumentViewer({ doc, searchQuery, searchPage, onClose }
               <a
                 href={fileUrl}
                 download={doc.original_name}
-                className="text-sm text-gem-400 hover:text-gem-400/80 font-medium"
+                className="text-sm text-lava-400 hover:text-lava-400/80 font-medium"
               >
                 Download file
               </a>

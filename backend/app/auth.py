@@ -15,8 +15,15 @@ def register():
 
     if not email or not password:
         return {"error": "Email and password are required"}, 400
-    if len(password) < 6:
-        return {"error": "Password must be at least 6 characters"}, 400
+    if len(password) < 8:
+        return {"error": "Password must be at least 8 characters"}, 400
+    import re as _re
+    if not _re.search(r"[A-Za-z]", password):
+        return {"error": "Password must contain at least one letter"}, 400
+    if not _re.search(r"[0-9]", password):
+        return {"error": "Password must contain at least one number"}, 400
+    if not _re.search(r"[^A-Za-z0-9]", password):
+        return {"error": "Password must contain at least one symbol"}, 400
     if User.query.filter_by(email=email).first():
         return {"error": "Email already registered"}, 409
 

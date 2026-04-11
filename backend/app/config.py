@@ -9,4 +9,4 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
     THUMBNAIL_FOLDER = os.path.join(BASE_DIR, "thumbnails")
-    MAX_CONTENT_LENGTH = 200 * 1024 * 1024  # 200 MB
+    MAX_CONTENT_LENGTH = 300 * 1024 * 1024  # 300 MB

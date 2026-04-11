@@ -23,7 +23,7 @@ export default function AutoLinkBar({ selectedCount, onCancel, onAnalyze, analyz
         <button
           onClick={onAnalyze}
           disabled={analyzing || selectedCount < 2}
-          className="flex items-center gap-1.5 text-sm font-medium px-4 py-1.5 rounded-lg bg-gem-600 hover:bg-gem-500 text-white transition disabled:opacity-50 cursor-pointer"
+          className="flex items-center gap-1.5 text-sm font-medium px-4 py-1.5 rounded-lg bg-lava-600 hover:bg-lava-500 text-white transition disabled:opacity-50 cursor-pointer"
         >
           {analyzing ? (
             <>

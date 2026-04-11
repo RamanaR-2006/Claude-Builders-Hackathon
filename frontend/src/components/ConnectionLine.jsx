@@ -1,7 +1,26 @@
+import { useState } from 'react';
+
 const NODE_W = 160;
 const NODE_H = 130;
 
-export default function ConnectionLine({ conn, docs, onClick, animateIn }) {
+const LINE_COLORS = [
+  { glow: '#f97316', line: '#fb923c', diamond: '#f97316' },
+  { glow: '#eab308', line: '#fbbf24', diamond: '#eab308' },
+  { glow: '#ef4444', line: '#f87171', diamond: '#ef4444' },
+  { glow: '#f59e0b', line: '#fcd34d', diamond: '#f59e0b' },
+  { glow: '#dc2626', line: '#fb7185', diamond: '#dc2626' },
+  { glow: '#d97706', line: '#fde047', diamond: '#d97706' },
+  { glow: '#c2410c', line: '#fdba74', diamond: '#c2410c' },
+  { glow: '#b91c1c', line: '#fca5a5', diamond: '#b91c1c' },
+];
+
+function truncate(str, max = 60) {
+  if (!str) return '';
+  return str.length > max ? str.slice(0, max) + '…' : str;
+}
+
+export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIndex = 0 }) {
+  const [hovered, setHovered] = useState(false);
   const src = docs.find(d => d.id === conn.source_doc_id);
   const tgt = docs.find(d => d.id === conn.target_doc_id);
   if (!src || !tgt) return null;
@@ -14,14 +33,15 @@ export default function ConnectionLine({ conn, docs, onClick, animateIn }) {
   const midX = (x1 + x2) / 2;
   const midY = (y1 + y2) / 2;
 
-  const hasDesc = !!conn.description;
+  const palette = LINE_COLORS[colorIndex % LINE_COLORS.length];
+  const desc = conn.description || '';
 
   return (
     <g className="cursor-pointer" onClick={(e) => { e.stopPropagation(); onClick(conn); }}>
       {/* Glow effect */}
       <line
         x1={x1} y1={y1} x2={x2} y2={y2}
-        stroke={hasDesc ? '#8b5cf6' : '#22d3ee'}
+        stroke={palette.glow}
         strokeWidth={6}
         strokeLinecap="round"
         opacity={0.15}
@@ -29,7 +49,7 @@ export default function ConnectionLine({ conn, docs, onClick, animateIn }) {
       />
       <line
         x1={x1} y1={y1} x2={x2} y2={y2}
-        stroke={hasDesc ? '#a78bfa' : '#22d3ee'}
+        stroke={palette.line}
         strokeWidth={2}
         strokeLinecap="round"
         opacity={0.7}
@@ -41,15 +61,53 @@ export default function ConnectionLine({ conn, docs, onClick, animateIn }) {
         stroke="transparent"
         strokeWidth={14}
       />
-      {/* Midpoint diamond */}
+      {/* Midpoint diamond with hover zone */}
+      <rect
+        x={midX - 12} y={midY - 12}
+        width={24} height={24}
+        fill="transparent"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      />
       <rect
         x={midX - 5} y={midY - 5}
         width={10} height={10}
         rx={2}
-        fill={hasDesc ? '#8b5cf6' : '#06b6d4'}
+        fill={palette.diamond}
         transform={`rotate(45 ${midX} ${midY})`}
         className={animateIn ? 'animate-diamond-pop' : ''}
+        style={{ pointerEvents: 'none' }}
       />
+
+      {/* Tooltip on hover */}
+      {hovered && desc && (
+        <foreignObject
+          x={midX - 130}
+          y={midY - 48}
+          width={260}
+          height={40}
+          style={{ pointerEvents: 'none', overflow: 'visible' }}
+        >
+          <div
+            xmlns="http://www.w3.org/1999/xhtml"
+            style={{
+              background: '#17130f',
+              border: '1px solid #3d332b',
+              borderRadius: '8px',
+              padding: '6px 10px',
+              fontSize: '11px',
+              color: '#ede8e3',
+              lineHeight: '1.4',
+              textAlign: 'center',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+              maxWidth: '260px',
+              wordBreak: 'break-word',
+            }}
+          >
+            {truncate(desc, 120)}
+          </div>
+        </foreignObject>
+      )}
     </g>
   );
 }
