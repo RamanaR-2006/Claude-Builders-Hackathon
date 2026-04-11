@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { LogOut, Link as LinkIcon, Plus, Search } from 'lucide-react';
+import { LogOut, Link as LinkIcon, Plus, Search, Loader2, Sparkles } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function Navbar({ connectMode, onToggleConnect, onUpload, onSearch }) {
+export default function Navbar({ connectMode, onToggleConnect, onUpload, onSearch, searching, selectMode, onAutoLink }) {
   const { user, logout } = useAuth();
   const [query, setQuery] = useState('');
 
@@ -22,14 +22,22 @@ export default function Navbar({ connectMode, onToggleConnect, onUpload, onSearc
         <h1 className="text-lg font-bold tracking-tight text-white">Lattice</h1>
 
         <div className="relative">
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+          {searching ? (
+            <Loader2 size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gem-400 animate-spin pointer-events-none" />
+          ) : (
+            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+          )}
           <input
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search documents…"
-            className="w-56 pl-8 pr-3 py-1.5 text-sm rounded-lg bg-surface-700 border border-surface-500 text-white placeholder-gray-500 outline-none focus:border-gem-500 focus:ring-2 focus:ring-gem-500/20 transition"
+            className={`w-56 pl-8 pr-3 py-1.5 text-sm rounded-lg bg-surface-700 border text-white placeholder-gray-500 outline-none transition ${
+              searching
+                ? 'border-gem-500/50 ring-2 ring-gem-500/20'
+                : 'border-surface-500 focus:border-gem-500 focus:ring-2 focus:ring-gem-500/20'
+            }`}
           />
         </div>
       </div>
@@ -53,6 +61,18 @@ export default function Navbar({ connectMode, onToggleConnect, onUpload, onSearc
         >
           <LinkIcon size={16} />
           {connectMode ? 'Connecting…' : 'Connect'}
+        </button>
+
+        <button
+          onClick={onAutoLink}
+          className={`flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg transition cursor-pointer ${
+            selectMode
+              ? 'bg-gem-500/20 text-gem-400 ring-2 ring-gem-500/30'
+              : 'bg-surface-600 text-gray-300 hover:bg-surface-500'
+          }`}
+        >
+          <Sparkles size={16} />
+          {selectMode ? 'Cancel' : 'Auto-Link'}
         </button>
 
         <div className="w-px h-6 bg-surface-600 mx-1" />

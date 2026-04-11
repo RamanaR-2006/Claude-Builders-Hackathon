@@ -1,4 +1,5 @@
-import { FileText, Film, Music, X } from 'lucide-react';
+import { useState } from 'react';
+import { FileText, Film, Music, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 const TYPE_ICONS = { pdf: FileText, video: Film, audio: Music };
 const TYPE_COLORS = { pdf: 'text-ruby-400', video: 'text-gem-400', audio: 'text-emerald-400' };
@@ -14,6 +15,76 @@ function HighlightedSnippet({ text, query }) {
           : part
       )}
     </p>
+  );
+}
+
+function MatchRow({ match, result, query, onSelect, Icon, iconColor }) {
+  return (
+    <button
+      onClick={() => onSelect(result.doc_id, match.page, query)}
+      className="w-full text-left px-4 py-3 hover:bg-surface-700 transition cursor-pointer flex items-start gap-3"
+    >
+      <Icon size={18} className={`${iconColor} shrink-0 mt-0.5`} />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-gray-200 truncate">{result.original_name}</p>
+        {match.page && (
+          <span className="text-[10px] font-medium text-gem-400 bg-gem-500/10 rounded px-1.5 py-0.5 inline-block mt-1">
+            Page {match.page}
+          </span>
+        )}
+        {!match.page && !match.snippet && (
+          <span className="text-[10px] font-medium text-gray-500 bg-surface-600 rounded px-1.5 py-0.5 inline-block mt-1">
+            Filename match
+          </span>
+        )}
+        {match.snippet && <HighlightedSnippet text={match.snippet} query={query} />}
+      </div>
+    </button>
+  );
+}
+
+function DocumentGroup({ result, query, onSelect }) {
+  const [expanded, setExpanded] = useState(false);
+  const Icon = TYPE_ICONS[result.file_type] || FileText;
+  const iconColor = TYPE_COLORS[result.file_type] || 'text-gray-400';
+
+  const PREVIEW_COUNT = 3;
+  const hasMore = result.matches.length > PREVIEW_COUNT;
+  const visibleMatches = expanded ? result.matches : result.matches.slice(0, PREVIEW_COUNT);
+  const hiddenCount = result.matches.length - PREVIEW_COUNT;
+
+  return (
+    <div className="border-b border-surface-600/50 last:border-0">
+      {visibleMatches.map((match, idx) => (
+        <MatchRow
+          key={idx}
+          match={match}
+          result={result}
+          query={query}
+          onSelect={onSelect}
+          Icon={Icon}
+          iconColor={iconColor}
+        />
+      ))}
+      {hasMore && (
+        <button
+          onClick={() => setExpanded(prev => !prev)}
+          className="w-full flex items-center gap-1.5 px-4 py-2 text-[11px] font-medium text-gem-400 hover:text-gem-400/80 hover:bg-surface-700/50 transition cursor-pointer"
+        >
+          {expanded ? (
+            <>
+              <ChevronUp size={12} />
+              Show fewer
+            </>
+          ) : (
+            <>
+              <ChevronDown size={12} />
+              +{hiddenCount} more match{hiddenCount !== 1 ? 'es' : ''}
+            </>
+          )}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -47,44 +118,14 @@ export default function SearchResults({ results, query, onSelect, onClose }) {
         </div>
 
         <div className="overflow-y-auto flex-1">
-          {results.map(result => {
-            const Icon = TYPE_ICONS[result.file_type] || FileText;
-            const iconColor = TYPE_COLORS[result.file_type] || 'text-gray-400';
-            const displayMatches = result.matches.slice(0, 3);
-
-            return (
-              <div key={result.doc_id} className="border-b border-surface-600/50 last:border-0">
-                {displayMatches.map((match, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => onSelect(result.doc_id, match.page, query)}
-                    className="w-full text-left px-4 py-3 hover:bg-surface-700 transition cursor-pointer flex items-start gap-3"
-                  >
-                    <Icon size={18} className={`${iconColor} shrink-0 mt-0.5`} />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-200 truncate">{result.original_name}</p>
-                      {match.page && (
-                        <span className="text-[10px] font-medium text-gem-400 bg-gem-500/10 rounded px-1.5 py-0.5 inline-block mt-1">
-                          Page {match.page}
-                        </span>
-                      )}
-                      {!match.page && !match.snippet && (
-                        <span className="text-[10px] font-medium text-gray-500 bg-surface-600 rounded px-1.5 py-0.5 inline-block mt-1">
-                          Filename match
-                        </span>
-                      )}
-                      {match.snippet && <HighlightedSnippet text={match.snippet} query={query} />}
-                    </div>
-                  </button>
-                ))}
-                {result.matches.length > 3 && (
-                  <div className="px-4 py-1.5 text-[10px] text-gray-500">
-                    +{result.matches.length - 3} more match{result.matches.length - 3 !== 1 ? 'es' : ''}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {results.map(result => (
+            <DocumentGroup
+              key={result.doc_id}
+              result={result}
+              query={query}
+              onSelect={onSelect}
+            />
+          ))}
         </div>
       </div>
     </div>

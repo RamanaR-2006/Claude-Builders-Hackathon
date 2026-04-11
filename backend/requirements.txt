@@ -6,3 +6,5 @@ werkzeug
 pdf2image
 pillow
 pymupdf
+anthropic
+python-dotenv

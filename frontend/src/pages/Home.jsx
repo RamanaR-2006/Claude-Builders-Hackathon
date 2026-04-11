@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
 import Canvas from '../components/Canvas';
 import UploadModal from '../components/UploadModal';
 import DocumentViewer from '../components/DocumentViewer';
 import SearchResults from '../components/SearchResults';
+import AutoLinkBar from '../components/AutoLinkBar';
 
 export default function Home() {
   const [docs, setDocs] = useState([]);
@@ -15,6 +16,14 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchPage, setSearchPage] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
+  const [searching, setSearching] = useState(false);
+
+  // Auto-link state
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedDocIds, setSelectedDocIds] = useState(new Set());
+  const [autoLinking, setAutoLinking] = useState(false);
+  const [animating, setAnimating] = useState(false);
+  const [newConnIds, setNewConnIds] = useState(new Set());
 
   useEffect(() => {
     Promise.all([
@@ -37,11 +46,14 @@ export default function Home() {
       return;
     }
     setSearchQuery(query);
+    setSearching(true);
     try {
       const res = await api.get('/documents/search', { params: { q: query } });
       setSearchResults(res.data);
     } catch {
       setSearchResults([]);
+    } finally {
+      setSearching(false);
     }
   };
 
@@ -60,13 +72,83 @@ export default function Home() {
     setSearchQuery('');
   };
 
+  const handleToggleAutoLink = () => {
+    if (selectMode) {
+      setSelectMode(false);
+      setSelectedDocIds(new Set());
+      setAutoLinking(false);
+    } else {
+      setConnectMode(false);
+      setSelectMode(true);
+      setSelectedDocIds(new Set());
+    }
+  };
+
+  const handleToggleSelect = useCallback((docId) => {
+    setSelectedDocIds(prev => {
+      const next = new Set(prev);
+      if (next.has(docId)) {
+        next.delete(docId);
+      } else {
+        next.add(docId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleAutoLinkAnalyze = async () => {
+    if (selectedDocIds.size < 2) return;
+    setAutoLinking(true);
+
+    try {
+      const res = await api.post('/autolink', { doc_ids: Array.from(selectedDocIds) });
+      const { connections: newConns, positions } = res.data;
+
+      setAnimating(true);
+
+      // Apply new positions (triggers CSS transition on DocumentNode)
+      setDocs(prev => prev.map(d => {
+        const pos = positions[String(d.id)];
+        if (pos) {
+          return { ...d, position_x: pos.x, position_y: pos.y };
+        }
+        return d;
+      }));
+
+      // Stagger-add new connections one by one
+      const connIdsToAnimate = new Set();
+      for (let i = 0; i < newConns.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        const conn = newConns[i];
+        connIdsToAnimate.add(conn.id);
+        setNewConnIds(new Set(connIdsToAnimate));
+        setConnections(prev => [...prev, conn]);
+      }
+
+      // Wind down
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setAnimating(false);
+      setSelectMode(false);
+      setSelectedDocIds(new Set());
+      setNewConnIds(new Set());
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Auto-link failed';
+      alert(msg);
+    } finally {
+      setAutoLinking(false);
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col relative">
       <Navbar
         connectMode={connectMode}
-        onToggleConnect={() => setConnectMode(prev => !prev)}
+        onToggleConnect={() => { setConnectMode(prev => !prev); setSelectMode(false); }}
         onUpload={() => setShowUpload(true)}
         onSearch={handleSearch}
+        searching={searching}
+        selectMode={selectMode}
+        onAutoLink={handleToggleAutoLink}
       />
 
       {searchResults !== null && (
@@ -86,7 +168,21 @@ export default function Home() {
         connectMode={connectMode}
         setConnectMode={setConnectMode}
         onViewDoc={setViewingDoc}
+        selectMode={selectMode}
+        selectedIds={selectedDocIds}
+        onToggleSelect={handleToggleSelect}
+        animating={animating}
+        newConnIds={newConnIds}
       />
+
+      {selectMode && (
+        <AutoLinkBar
+          selectedCount={selectedDocIds.size}
+          onCancel={handleToggleAutoLink}
+          onAnalyze={handleAutoLinkAnalyze}
+          analyzing={autoLinking}
+        />
+      )}
 
       {showUpload && (
         <UploadModal

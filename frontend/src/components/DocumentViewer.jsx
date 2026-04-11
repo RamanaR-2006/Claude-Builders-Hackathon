@@ -1,11 +1,18 @@
 import { X, Download, FileText, Music } from 'lucide-react';
 
 export default function DocumentViewer({ doc, searchQuery, searchPage, onClose }) {
-  let fileUrl = `/api/documents/${doc.id}/file`;
+  const fileUrl = `/api/documents/${doc.id}/file`;
 
-  // For PDFs opened from search, jump to the matching page
-  const pdfFragment = doc.file_type === 'pdf' && searchPage ? `#page=${searchPage}` : '';
-  const pdfSrc = fileUrl + pdfFragment;
+  // For PDFs opened from search, serve a highlighted copy and jump to the page
+  let pdfSrc = fileUrl;
+  if (doc.file_type === 'pdf' && searchQuery) {
+    const params = new URLSearchParams();
+    params.set('highlight', searchQuery);
+    pdfSrc = `${fileUrl}?${params.toString()}`;
+    if (searchPage) {
+      pdfSrc += `#page=${searchPage}`;
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -20,6 +27,11 @@ export default function DocumentViewer({ doc, searchQuery, searchPage, onClose }
             {searchPage && (
               <span className="shrink-0 text-[10px] font-medium text-gem-400 bg-gem-500/10 border border-gem-500/20 rounded-full px-2.5 py-0.5">
                 Match on page {searchPage}
+              </span>
+            )}
+            {searchQuery && !searchPage && (
+              <span className="shrink-0 text-[10px] font-medium text-gem-400 bg-gem-500/10 border border-gem-500/20 rounded-full px-2.5 py-0.5">
+                Highlighted: {searchQuery}
               </span>
             )}
           </div>

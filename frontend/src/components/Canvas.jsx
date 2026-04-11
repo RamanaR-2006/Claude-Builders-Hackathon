@@ -4,7 +4,12 @@ import DocumentNode from './DocumentNode';
 import ConnectionLine from './ConnectionLine';
 import ConnectionModal from './ConnectionModal';
 
-export default function Canvas({ docs, setDocs, connections, setConnections, connectMode, setConnectMode, onViewDoc }) {
+export default function Canvas({
+  docs, setDocs, connections, setConnections,
+  connectMode, setConnectMode, onViewDoc,
+  selectMode, selectedIds, onToggleSelect,
+  animating, newConnIds,
+}) {
   const [connectFirst, setConnectFirst] = useState(null);
   const [activeConn, setActiveConn] = useState(null);
   const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
@@ -42,7 +47,6 @@ export default function Canvas({ docs, setDocs, connections, setConnections, con
       return;
     }
 
-    // Frontend guard: check if connection already exists in either direction
     const alreadyExists = connections.some(
       c => (c.source_doc_id === connectFirst && c.target_doc_id === id) ||
            (c.source_doc_id === id && c.target_doc_id === connectFirst)
@@ -130,6 +134,7 @@ export default function Canvas({ docs, setDocs, connections, setConnections, con
                 conn={conn}
                 docs={docs}
                 onClick={handleLineClick}
+                animateIn={newConnIds?.has(conn.id)}
               />
             ))}
           </g>
@@ -142,11 +147,15 @@ export default function Canvas({ docs, setDocs, connections, setConnections, con
             doc={doc}
             selected={connectFirst === doc.id}
             connectMode={connectMode}
+            selectMode={selectMode}
+            isSelected={selectedIds?.has(doc.id)}
+            animating={animating}
             onPositionChange={handlePositionChange}
             onToggleLock={handleToggleLock}
             onDelete={handleDelete}
             onClick={handleNodeClick}
             onView={onViewDoc}
+            onToggleSelect={onToggleSelect}
           />
         ))}
 

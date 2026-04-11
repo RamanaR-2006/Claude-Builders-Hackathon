@@ -1,7 +1,7 @@
 const NODE_W = 160;
 const NODE_H = 130;
 
-export default function ConnectionLine({ conn, docs, onClick }) {
+export default function ConnectionLine({ conn, docs, onClick, animateIn }) {
   const src = docs.find(d => d.id === conn.source_doc_id);
   const tgt = docs.find(d => d.id === conn.target_doc_id);
   if (!src || !tgt) return null;
@@ -25,6 +25,7 @@ export default function ConnectionLine({ conn, docs, onClick }) {
         strokeWidth={6}
         strokeLinecap="round"
         opacity={0.15}
+        className={animateIn ? 'animate-line-draw' : ''}
       />
       <line
         x1={x1} y1={y1} x2={x2} y2={y2}
@@ -32,6 +33,7 @@ export default function ConnectionLine({ conn, docs, onClick }) {
         strokeWidth={2}
         strokeLinecap="round"
         opacity={0.7}
+        className={animateIn ? 'animate-line-draw' : ''}
       />
       {/* Invisible wider hit area */}
       <line
@@ -46,6 +48,7 @@ export default function ConnectionLine({ conn, docs, onClick }) {
         rx={2}
         fill={hasDesc ? '#8b5cf6' : '#06b6d4'}
         transform={`rotate(45 ${midX} ${midY})`}
+        className={animateIn ? 'animate-diamond-pop' : ''}
       />
     </g>
   );

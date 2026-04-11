@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react';
-import { FileText, Film, Music, Lock, Unlock, Trash2, Eye } from 'lucide-react';
+import { FileText, Film, Music, Lock, Unlock, Trash2, Eye, Check } from 'lucide-react';
 
 const TYPE_ICONS = {
   pdf: FileText,
@@ -17,18 +17,22 @@ export default function DocumentNode({
   doc,
   selected,
   connectMode,
+  selectMode,
+  isSelected,
+  animating,
   onPositionChange,
   onToggleLock,
   onDelete,
   onClick,
   onView,
+  onToggleSelect,
 }) {
   const nodeRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, origX: 0, origY: 0 });
 
   const handlePointerDown = useCallback((e) => {
-    if (doc.is_locked || connectMode) return;
+    if (doc.is_locked || connectMode || selectMode) return;
     e.preventDefault();
     e.stopPropagation();
     setDragging(true);
@@ -39,7 +43,7 @@ export default function DocumentNode({
       origY: doc.position_y,
     };
     nodeRef.current?.setPointerCapture(e.pointerId);
-  }, [doc.is_locked, doc.position_x, doc.position_y, connectMode]);
+  }, [doc.is_locked, doc.position_x, doc.position_y, connectMode, selectMode]);
 
   const handlePointerMove = useCallback((e) => {
     if (!dragging) return;
@@ -62,6 +66,11 @@ export default function DocumentNode({
   }, [dragging, doc.id, onPositionChange]);
 
   const handleClick = (e) => {
+    if (selectMode) {
+      e.stopPropagation();
+      onToggleSelect(doc.id);
+      return;
+    }
     if (connectMode) {
       e.stopPropagation();
       onClick(doc.id);
@@ -71,6 +80,13 @@ export default function DocumentNode({
   const Icon = TYPE_ICONS[doc.file_type] || FileText;
   const iconColor = TYPE_COLORS[doc.file_type] || 'text-gray-400';
   const thumbnailUrl = doc.has_thumbnail ? `/api/documents/${doc.id}/thumbnail` : null;
+
+  const getCursor = () => {
+    if (selectMode) return 'pointer';
+    if (connectMode) return 'crosshair';
+    if (doc.is_locked) return 'default';
+    return 'grab';
+  };
 
   return (
     <div
@@ -85,15 +101,18 @@ export default function DocumentNode({
         left: doc.position_x,
         top: doc.position_y,
         width: 160,
-        cursor: connectMode ? 'crosshair' : doc.is_locked ? 'default' : 'grab',
+        cursor: getCursor(),
         touchAction: 'none',
+        transition: animating ? 'left 0.8s cubic-bezier(0.4, 0, 0.2, 1), top 0.8s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
       }}
     >
       <div
         className={`rounded-xl border transition-all overflow-hidden ${
-          selected
-            ? 'bg-surface-700 border-cyan-500 shadow-lg shadow-cyan-500/20 ring-2 ring-cyan-500/30'
-            : 'bg-surface-800 border-surface-600 shadow-md shadow-black/30 hover:border-surface-500 hover:shadow-lg hover:shadow-black/40'
+          isSelected
+            ? 'bg-surface-700 border-gem-500 shadow-lg shadow-gem-500/20 ring-2 ring-gem-500/30 animate-pulse-gem'
+            : selected
+              ? 'bg-surface-700 border-cyan-500 shadow-lg shadow-cyan-500/20 ring-2 ring-cyan-500/30'
+              : 'bg-surface-800 border-surface-600 shadow-md shadow-black/30 hover:border-surface-500 hover:shadow-lg hover:shadow-black/40'
         }`}
       >
         {/* Thumbnail area */}
@@ -112,36 +131,51 @@ export default function DocumentNode({
           </p>
         </div>
 
-        {/* Actions – visible on hover. onPointerDown stops drag from starting on buttons */}
-        <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onPointerDown={e => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); onView(doc); }}
-            className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-gem-400 cursor-pointer"
-            title="View"
-          >
-            <Eye size={13} />
-          </button>
-          <button
-            onPointerDown={e => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); onToggleLock(doc.id); }}
-            className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-cyan-400 cursor-pointer"
-            title={doc.is_locked ? 'Unlock' : 'Lock'}
-          >
-            {doc.is_locked ? <Lock size={13} /> : <Unlock size={13} />}
-          </button>
-          <button
-            onPointerDown={e => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); onDelete(doc.id); }}
-            className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-ruby-400 cursor-pointer"
-            title="Delete"
-          >
-            <Trash2 size={13} />
-          </button>
-        </div>
+        {/* Selection checkbox */}
+        {selectMode && (
+          <div className="absolute top-1.5 left-1.5">
+            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
+              isSelected
+                ? 'bg-gem-600 border-gem-500'
+                : 'bg-surface-800/80 border-surface-500'
+            }`}>
+              {isSelected && <Check size={12} className="text-white" />}
+            </div>
+          </div>
+        )}
+
+        {/* Actions – visible on hover, hidden in select mode */}
+        {!selectMode && (
+          <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onPointerDown={e => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onView(doc); }}
+              className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-gem-400 cursor-pointer"
+              title="View"
+            >
+              <Eye size={13} />
+            </button>
+            <button
+              onPointerDown={e => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onToggleLock(doc.id); }}
+              className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-cyan-400 cursor-pointer"
+              title={doc.is_locked ? 'Unlock' : 'Lock'}
+            >
+              {doc.is_locked ? <Lock size={13} /> : <Unlock size={13} />}
+            </button>
+            <button
+              onPointerDown={e => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onDelete(doc.id); }}
+              className="p-1 rounded-md bg-surface-800/90 backdrop-blur border border-surface-500 text-gray-400 hover:text-ruby-400 cursor-pointer"
+              title="Delete"
+            >
+              <Trash2 size={13} />
+            </button>
+          </div>
+        )}
 
         {/* Lock indicator */}
-        {doc.is_locked && (
+        {doc.is_locked && !selectMode && (
           <div className="absolute top-1.5 left-1.5">
             <Lock size={11} className="text-cyan-400" />
           </div>

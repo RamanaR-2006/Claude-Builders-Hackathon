@@ -1,3 +1,4 @@
+import io
 import os
 import re
 import subprocess
@@ -165,6 +166,30 @@ def serve_file(doc_id):
     filepath = os.path.join(current_app.config["UPLOAD_FOLDER"], doc.filename)
     if not os.path.exists(filepath):
         return {"error": "File missing from disk"}, 404
+
+    highlight = request.args.get("highlight", "").strip()
+    if highlight and doc.file_type == "pdf":
+        try:
+            import fitz
+
+            pdf = fitz.open(filepath)
+            for page in pdf:
+                rects = page.search_for(highlight)
+                for rect in rects:
+                    annot = page.add_highlight_annot(rect)
+                    annot.set_colors(stroke=(0.545, 0.361, 0.965))  # gem purple
+                    annot.update()
+            buf = io.BytesIO()
+            pdf.save(buf)
+            pdf.close()
+            buf.seek(0)
+            return send_file(
+                buf,
+                mimetype="application/pdf",
+                download_name=doc.original_name,
+            )
+        except Exception:
+            pass
 
     return send_file(filepath, download_name=doc.original_name)
 
