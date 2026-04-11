@@ -87,6 +87,25 @@ def _hex_to_rgb(hex_color):
     return (r, g, b)
 
 
+def _lighten(rgb, factor=0.55):
+    """Blend an RGB colour towards white by factor (0=unchanged, 1=white)."""
+    return tuple(c + (1.0 - c) * factor for c in rgb)
+
+
+def _block_line_rects(page, match_rect):
+    """Return the line bboxes of the text block that contains match_rect."""
+    try:
+        import fitz
+        for block in page.get_text("dict")["blocks"]:
+            if block.get("type") != 0:
+                continue
+            if fitz.Rect(block["bbox"]).intersects(match_rect):
+                return [fitz.Rect(line["bbox"]) for line in block.get("lines", [])]
+    except Exception:
+        pass
+    return []
+
+
 @documents_bp.route("/upload", methods=["POST"])
 @login_required
 def upload():
@@ -204,10 +223,18 @@ def serve_file(doc_id):
         for page in pdf:
             for term, rgb in terms:
                 rects = page.search_for(term)
-                for rect in rects:
-                    annot = page.add_highlight_annot(rect)
+                for match_rect in rects:
+                    # Layer 1 — paragraph context: lighter highlight over the whole block
+                    para_rects = _block_line_rects(page, match_rect)
+                    if para_rects:
+                        para_annot = page.add_highlight_annot(para_rects)
+                        para_annot.set_colors(stroke=_lighten(rgb, 0.55))
+                        para_annot.update(opacity=0.35)
+
+                    # Layer 2 — exact match: darker highlight over the found text
+                    annot = page.add_highlight_annot(match_rect)
                     annot.set_colors(stroke=rgb)
-                    annot.update()
+                    annot.update(opacity=0.75)
         buf = io.BytesIO()
         pdf.save(buf)
         pdf.close()

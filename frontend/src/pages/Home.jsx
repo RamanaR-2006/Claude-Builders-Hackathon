@@ -227,6 +227,15 @@ export default function Home() {
       const { reply, citations } = res.data;
       const assistantMsg = { role: 'assistant', content: reply, citations };
       setChatMessages(prev => [...prev, assistantMsg]);
+      if (citations && citations.length > 0) {
+        const first = citations[0];
+        const doc = docs.find(d => d.id === first.doc_id);
+        if (doc) {
+          setViewingDoc(doc);
+          setSearchPage(first.page);
+          setSearchQuery(first.quote);
+        }
+      }
     } catch (err) {
       const errMsg = err.response?.data?.error || 'Chat request failed';
       setChatMessages(prev => [...prev, { role: 'assistant', content: `Error: ${errMsg}`, citations: [] }]);

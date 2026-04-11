@@ -218,12 +218,21 @@ def autolink():
     system_parts = [
         "You analyze documents and identify meaningful connections between them. "
         "Given summaries of documents, identify which pairs are related and why. "
-        "You may create MULTIPLE connections between the same pair of documents if they share "
-        "distinct themes or relationships -- each connection should describe a different aspect. "
+        "You may create at most 3 connections between the same pair of documents, but ONLY if "
+        "each connection belongs to a CATEGORICALLY DIFFERENT relationship type from this list: "
+        "THEMATIC (shared topics or subject matter), "
+        "METHODOLOGICAL (similar methods, approaches, or techniques), "
+        "CONTRADICTORY (opposing viewpoints or conflicting evidence), "
+        "COMPLEMENTARY (different angles that reinforce each other), "
+        "CAUSAL (cause-and-effect or dependency), "
+        "COMPARATIVE (explicit comparison of findings or concepts). "
+        "Never create two connections between the same pair that belong to the same category — "
+        "each must represent a genuinely different dimension of their relationship. "
+        "Start each description with the category label, e.g. 'THEMATIC: both documents...' "
         "Return ONLY valid JSON with this exact structure: "
-        '{"connections": [{"source_id": <int>, "target_id": <int>, "description": "<1-2 sentence reason>", "strength": <float 1-10>}]}. '
+        '{"connections": [{"source_id": <int>, "target_id": <int>, "description": "<category: 1-2 sentence reason>", "strength": <float 1-10>}]}. '
         "The strength field indicates how strong the connection is: 1 = tenuous/weak, 5 = moderate, 10 = very strong. "
-        "Only connect documents that have a genuine thematic, topical, or contextual relationship. "
+        "Only connect documents that have a genuine relationship. "
         "Do not connect every document to every other. Be selective and meaningful."
     ]
 
@@ -275,6 +284,12 @@ def autolink():
 
     valid_ids = {d.id for d in docs}
     created_connections = []
+    pair_counts_new = {}  # track connections added in this batch per pair
+
+    def _pair_key(a, b):
+        return (min(a, b), max(a, b))
+
+    MAX_CONNECTIONS_PER_PAIR = 3
 
     for conn_data in ai_connections:
         src_id = conn_data.get("source_id")
@@ -288,6 +303,18 @@ def autolink():
             continue
         if _has_similar_description(current_user.id, src_id, tgt_id, desc):
             continue
+
+        # Enforce per-pair cap across both existing and newly created connections
+        pk = _pair_key(src_id, tgt_id)
+        existing_count = Connection.query.filter(
+            Connection.user_id == current_user.id,
+            ((Connection.source_doc_id == src_id) & (Connection.target_doc_id == tgt_id))
+            | ((Connection.source_doc_id == tgt_id) & (Connection.target_doc_id == src_id)),
+        ).count()
+        batch_count = pair_counts_new.get(pk, 0)
+        if existing_count + batch_count >= MAX_CONNECTIONS_PER_PAIR:
+            continue
+        pair_counts_new[pk] = batch_count + 1
 
         if strength is not None:
             try:

@@ -27,7 +27,7 @@ def register():
     if User.query.filter_by(email=email).first():
         return {"error": "Email already registered"}, 409
 
-    user = User(email=email, password_hash=generate_password_hash(password))
+    user = User(email=email, password_hash=generate_password_hash(password, method="pbkdf2:sha256"))
     db.session.add(user)
     db.session.commit()
     login_user(user)
