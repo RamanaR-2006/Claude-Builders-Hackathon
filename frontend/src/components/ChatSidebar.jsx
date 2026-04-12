@@ -58,8 +58,9 @@ function renderAssistantMessage(text, citations, onCitationClick, docs) {
   let citIdx = 0;
   const cleanText = text.replace(citationPattern, (full, docName, page, quote) => {
     const token = `__CIT_${citIdx}__`;
-    const doc = docs?.find(d => d.original_name.replace(/\.[^/.]+$/, '') === docName.trim());
-    citationMap[token] = { docId: doc?.id ?? null, docName: docName.trim(), page: parseInt(page), quote };
+    const cleanName = docName.trim().replace(/^"(.*)"$/, '$1');
+    const doc = docs?.find(d => d.original_name.replace(/\.[^/.]+$/, '') === cleanName);
+    citationMap[token] = { docId: doc?.id ?? null, docName: cleanName, page: parseInt(page), quote };
     citIdx++;
     return token;
   });

@@ -57,14 +57,14 @@ def chat():
 
     docs_context = "\n\n---\n\n".join(doc_summaries)
 
-    valid_doc_names = [f'"{_cite_name(doc)}"' for doc in docs[:MAX_DOCS_IN_CONTEXT]]
+    valid_doc_names = [_cite_name(doc) for doc in docs[:MAX_DOCS_IN_CONTEXT]]
 
     system_prompt = (
         "You are a knowledgeable research assistant. The user has uploaded documents, "
         "and you must answer questions using ONLY the content provided below.\n\n"
         "CITATION RULES — follow exactly:\n"
         "1. Use this format: [DOC:document_name:page_number:\"exact quote\"]\n"
-        f"2. Only use these document names: {valid_doc_names}. NEVER invent or guess a name.\n"
+        f"2. Only use these document names (copy exactly): {', '.join(valid_doc_names)}. NEVER invent or guess a name.\n"
         "3. The quote must be copied verbatim from the [Page N] section of the document text. "
         "Use the page number shown in the [Page N] label immediately before the quoted text. "
         "Copy the text character-for-character including punctuation — do NOT paraphrase.\n"
