@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Film, Music, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { FileText, Film, Music, Mic, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 const TYPE_ICONS = { pdf: FileText, video: Film, audio: Music };
 const TYPE_COLORS = { pdf: 'text-magma-400', video: 'text-lava-400', audio: 'text-ember-400' };
@@ -19,6 +19,8 @@ function HighlightedSnippet({ text, query }) {
 }
 
 function MatchRow({ match, result, query, onSelect, Icon, iconColor }) {
+  const isTranscript = match.source === 'transcript';
+
   return (
     <button
       onClick={() => onSelect(result.doc_id, match.page, query)}
@@ -27,12 +29,18 @@ function MatchRow({ match, result, query, onSelect, Icon, iconColor }) {
       <Icon size={18} className={`${iconColor} shrink-0 mt-0.5`} />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-gray-200 truncate">{result.original_name}</p>
-        {match.page && (
+        {isTranscript && (
+          <span className="text-[10px] font-medium text-ember-400 bg-ember-500/10 rounded px-1.5 py-0.5 inline-flex items-center gap-1 mt-1">
+            <Mic size={10} />
+            Transcript
+          </span>
+        )}
+        {!isTranscript && match.page && (
           <span className="text-[10px] font-medium text-lava-400 bg-lava-500/10 rounded px-1.5 py-0.5 inline-block mt-1">
             Page {match.page}
           </span>
         )}
-        {!match.page && !match.snippet && (
+        {!isTranscript && !match.page && !match.snippet && (
           <span className="text-[10px] font-medium text-gray-500 bg-surface-600 rounded px-1.5 py-0.5 inline-block mt-1">
             Filename match
           </span>

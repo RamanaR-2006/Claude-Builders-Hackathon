@@ -17,6 +17,7 @@ class User(UserMixin, db.Model):
     documents = db.relationship("Document", backref="owner", lazy=True, cascade="all, delete-orphan")
     connections = db.relationship("Connection", backref="owner", lazy=True, cascade="all, delete-orphan")
     highlights = db.relationship("Highlight", backref="owner", lazy=True, cascade="all, delete-orphan")
+    shared_canvases = db.relationship("SharedCanvas", backref="author", lazy=True, cascade="all, delete-orphan")
 
 
 class Document(db.Model):
@@ -89,4 +90,25 @@ class Highlight(db.Model):
             "doc_id": self.doc_id,
             "term": self.term,
             "color": self.color,
+        }
+
+
+class SharedCanvas(db.Model):
+    __tablename__ = "shared_canvases"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    title = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, default="")
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    snapshot_data = db.Column(db.Text, nullable=False)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "title": self.title,
+            "description": self.description,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "snapshot_data": self.snapshot_data,
         }

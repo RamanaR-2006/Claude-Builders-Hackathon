@@ -9,6 +9,7 @@ import SearchResults from '../components/SearchResults';
 import AutoLinkPanel from '../components/AutoLinkPanel';
 import DocSidebar from '../components/DocSidebar';
 import ChatSidebar from '../components/ChatSidebar';
+import ShareModal from '../components/ShareModal';
 import Toast from '../components/Toast';
 
 let toastId = 0;
@@ -34,6 +35,7 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [organizing, setOrganizing] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const [selectMode, setSelectMode] = useState(false);
   const [selectedDocIds, setSelectedDocIds] = useState(new Set());
@@ -268,7 +270,11 @@ export default function Home() {
     }
     if (!doc) return;
     setViewingDoc(doc);
-    setSearchPage(citation.page);
+    if (doc.file_type === 'audio' || doc.file_type === 'video') {
+      setSearchPage(null);
+    } else {
+      setSearchPage(citation.page);
+    }
     setSearchQuery(citation.quote);
   };
 
@@ -282,6 +288,7 @@ export default function Home() {
         onToggleSidebar={() => setSidebarOpen(prev => !prev)}
         onOrganize={handleOrganize}
         organizing={organizing}
+        onShare={() => setShowShareModal(true)}
       />
 
       {searchResults !== null && (
@@ -376,6 +383,15 @@ export default function Home() {
           searchQuery={searchQuery}
           searchPage={searchPage}
           onClose={handleCloseViewer}
+        />
+      )}
+
+      {showShareModal && (
+        <ShareModal
+          docs={docs}
+          connections={connections}
+          onClose={() => setShowShareModal(false)}
+          onToast={addToast}
         />
       )}
 

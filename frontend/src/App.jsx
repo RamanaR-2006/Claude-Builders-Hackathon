@@ -3,6 +3,8 @@ import { useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
+import Explore from './pages/Explore';
+import ExploreView from './pages/ExploreView';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -24,6 +26,8 @@ export default function App() {
       <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
       <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
       <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+      <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+      <Route path="/explore/:id" element={<ProtectedRoute><ExploreView /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

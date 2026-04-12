@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { LogOut, Search, Loader2, Sparkles, List, LayoutGrid } from 'lucide-react';
+import { LogOut, Search, Loader2, Sparkles, List, LayoutGrid, Share2, Compass } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
-export default function Navbar({ onSearch, searching, selectMode, onAutoLink, onToggleSidebar, onOrganize, organizing }) {
+export default function Navbar({ onSearch, searching, selectMode, onAutoLink, onToggleSidebar, onOrganize, organizing, onShare }) {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [query, setQuery] = useState('');
 
@@ -73,6 +75,24 @@ export default function Navbar({ onSearch, searching, selectMode, onAutoLink, on
         >
           <Sparkles size={16} />
           {selectMode ? 'Cancel' : 'Auto-Link'}
+        </button>
+
+        <button
+          onClick={onShare}
+          className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-surface-600 text-gray-300 hover:bg-surface-500 transition cursor-pointer"
+          title="Share canvas"
+        >
+          <Share2 size={16} />
+          Share
+        </button>
+
+        <button
+          onClick={() => navigate('/explore')}
+          className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-surface-600 text-gray-300 hover:bg-surface-500 transition cursor-pointer"
+          title="Explore public canvases"
+        >
+          <Compass size={16} />
+          Explore
         </button>
 
         <div className="w-px h-6 bg-surface-600 mx-1" />

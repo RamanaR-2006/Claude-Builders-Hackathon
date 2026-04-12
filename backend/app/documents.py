@@ -449,6 +449,16 @@ def search_documents():
                 except Exception:
                     pass
 
+        if doc.file_type in ("audio", "video") and doc.transcription:
+            transcript = doc.transcription
+            if query.lower() in transcript.lower():
+                snippet = _extract_snippet(transcript, query, context_chars=80)
+                matches.append({
+                    "page": None,
+                    "snippet": snippet,
+                    "source": "transcript",
+                })
+
         if not matches and query.lower() in doc.original_name.lower():
             matches.append({"page": None, "snippet": None})
 

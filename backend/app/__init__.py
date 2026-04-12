@@ -35,12 +35,14 @@ def create_app():
     from .canvas import canvas_bp
     from .chat import chat_bp
     from .documents import documents_bp
+    from .share import share_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(documents_bp, url_prefix="/api/documents")
     app.register_blueprint(canvas_bp, url_prefix="/api")
     app.register_blueprint(autolink_bp, url_prefix="/api")
     app.register_blueprint(chat_bp, url_prefix="/api")
+    app.register_blueprint(share_bp, url_prefix="/api")
 
     with app.app_context():
         db.create_all()
@@ -50,16 +52,33 @@ def create_app():
 
 
 def _migrate_db():
-    """Add any missing columns to existing tables without dropping data."""
+    """Add any missing columns/tables to existing DB without dropping data."""
     from sqlalchemy import inspect, text
     inspector = inspect(db.engine)
-    cols = {c["name"] for c in inspector.get_columns("documents")}
-    migrations = []
-    if "transcription" not in cols:
-        migrations.append("ALTER TABLE documents ADD COLUMN transcription TEXT")
-    if "transcription_status" not in cols:
-        migrations.append("ALTER TABLE documents ADD COLUMN transcription_status VARCHAR(20) DEFAULT 'na'")
-    for stmt in migrations:
-        db.session.execute(text(stmt))
-    if migrations:
+
+    tables = inspector.get_table_names()
+
+    if "documents" in tables:
+        cols = {c["name"] for c in inspector.get_columns("documents")}
+        migrations = []
+        if "transcription" not in cols:
+            migrations.append("ALTER TABLE documents ADD COLUMN transcription TEXT")
+        if "transcription_status" not in cols:
+            migrations.append("ALTER TABLE documents ADD COLUMN transcription_status VARCHAR(20) DEFAULT 'na'")
+        for stmt in migrations:
+            db.session.execute(text(stmt))
+        if migrations:
+            db.session.commit()
+
+    if "shared_canvases" not in tables:
+        db.session.execute(text(
+            "CREATE TABLE shared_canvases ("
+            "  id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "  user_id INTEGER NOT NULL REFERENCES users(id),"
+            "  title VARCHAR(255) NOT NULL,"
+            "  description TEXT DEFAULT '',"
+            "  created_at DATETIME,"
+            "  snapshot_data TEXT NOT NULL"
+            ")"
+        ))
         db.session.commit()

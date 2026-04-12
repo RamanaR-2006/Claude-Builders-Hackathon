@@ -14,6 +14,8 @@ const LINE_COLORS = [
   { glow: '#b91c1c', line: '#fca5a5', diamond: '#b91c1c' },
 ];
 
+const DASH_PATTERNS = [null, '10 5', '6 4', '3 3', '12 4 4 4'];
+
 function strengthToColor(strength) {
   if (strength <= 2) return { glow: '#ef4444', line: '#f87171', diamond: '#ef4444' };
   if (strength <= 4) return { glow: '#f97316', line: '#fb923c', diamond: '#f97316' };
@@ -25,6 +27,14 @@ function strengthToColor(strength) {
 function truncate(str, max = 60) {
   if (!str) return '';
   return str.length > max ? str.slice(0, max) + '…' : str;
+}
+
+function quadBezierAt(x1, y1, cpx, cpy, x2, y2, t) {
+  const u = 1 - t;
+  return {
+    x: u * u * x1 + 2 * u * t * cpx + t * t * x2,
+    y: u * u * y1 + 2 * u * t * cpy + t * t * y2,
+  };
 }
 
 export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIndex = 0, pairIndex = 0, pairTotal = 1 }) {
@@ -45,40 +55,46 @@ export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIn
     ? `${truncate(desc, 100)} (Strength: ${Number(conn.strength).toFixed(1)}/10)`
     : truncate(desc, 120);
 
-  // Compute perpendicular offset for parallel connections between the same pair
-  const OFFSET_SPACING = 20;
+  const isMulti = pairTotal > 1;
+  const OFFSET_SPACING = 35;
   let offset = 0;
-  if (pairTotal > 1) {
+  if (isMulti) {
     offset = (pairIndex - (pairTotal - 1) / 2) * OFFSET_SPACING;
   }
 
-  // Perpendicular direction
   const dx = x2 - x1;
   const dy = y2 - y1;
   const len = Math.sqrt(dx * dx + dy * dy) || 1;
   const nx = -dy / len;
   const ny = dx / len;
 
-  // Control point for quadratic bezier at midpoint + perpendicular offset
   const cpx = (x1 + x2) / 2 + nx * offset;
   const cpy = (y1 + y2) / 2 + ny * offset;
 
-  // Midpoint of the actual curve (at t=0.5 for a quadratic bezier)
-  const midX = 0.25 * x1 + 0.5 * cpx + 0.25 * x2;
-  const midY = 0.25 * y1 + 0.5 * cpy + 0.25 * y2;
+  // Stagger the diamond along the curve so they don't overlap
+  const diamondT = isMulti ? 0.35 + (pairIndex / Math.max(pairTotal - 1, 1)) * 0.3 : 0.5;
+  const diamondPos = quadBezierAt(x1, y1, cpx, cpy, x2, y2, diamondT);
+  const midX = diamondPos.x;
+  const midY = diamondPos.y;
 
   const pathD = `M ${x1} ${y1} Q ${cpx} ${cpy} ${x2} ${y2}`;
+  const dashPattern = isMulti ? (DASH_PATTERNS[pairIndex % DASH_PATTERNS.length] || null) : null;
+  const glowWidth = isMulti ? 4 : 6;
+  const lineOpacity = isMulti ? 0.85 : 0.7;
+
+  // Tooltip Y offset to prevent stacking
+  const tooltipYOff = isMulti ? -56 - (pairIndex % 3) * 28 : -52;
 
   return (
     <g className="cursor-pointer" onClick={(e) => { e.stopPropagation(); onClick(conn); }}>
-      {/* Glow */}
       <path
         d={pathD}
         fill="none"
         stroke={palette.glow}
-        strokeWidth={6}
+        strokeWidth={glowWidth}
         strokeLinecap="round"
         opacity={0.15}
+        strokeDasharray={dashPattern || undefined}
         className={animateIn ? 'animate-line-draw' : ''}
       />
       <path
@@ -87,17 +103,17 @@ export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIn
         stroke={palette.line}
         strokeWidth={2}
         strokeLinecap="round"
-        opacity={0.7}
+        opacity={lineOpacity}
+        strokeDasharray={dashPattern || undefined}
         className={animateIn ? 'animate-line-draw' : ''}
       />
-      {/* Wider hit area */}
       <path
         d={pathD}
         fill="none"
         stroke="transparent"
         strokeWidth={14}
       />
-      {/* Midpoint diamond hover zone */}
+      {/* Diamond hover zone */}
       <rect
         x={midX - 14} y={midY - 14}
         width={28} height={28}
@@ -132,9 +148,9 @@ export default function ConnectionLine({ conn, docs, onClick, animateIn, colorIn
       {hovered && desc && (
         <foreignObject
           x={midX - 140}
-          y={midY - 52}
+          y={midY + tooltipYOff}
           width={280}
-          height={46}
+          height={48}
           style={{ pointerEvents: 'none', overflow: 'visible' }}
         >
           <div
