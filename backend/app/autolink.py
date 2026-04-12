@@ -13,7 +13,7 @@ MAX_CHARS_PER_DOC = 2000
 
 NODE_W = 160
 NODE_H = 130
-NODE_PAD = 50
+NODE_PAD = 100
 CELL_W = NODE_W + NODE_PAD
 CELL_H = NODE_H + NODE_PAD
 
@@ -114,7 +114,7 @@ def _layout_cluster_circle(ids, cx, cy):
         return {str(ids[0]): {"x": round(cx), "y": round(cy)}}
 
     min_spacing = max(CELL_W, CELL_H)
-    radius = max(min_spacing, (n * min_spacing) / (2 * math.pi))
+    radius = max(min_spacing * 1.2, (n * min_spacing) / (2 * math.pi))
 
     positions = {}
     for i, doc_id in enumerate(ids):
@@ -127,12 +127,13 @@ def _layout_cluster_circle(ids, cx, cy):
 
 def _compute_smart_layout(all_doc_ids, connections, start_x=120, start_y=120):
     clusters = _find_clusters(all_doc_ids, connections)
+    CLUSTER_GAP = NODE_PAD * 1.5
 
     positions = {}
     cursor_x = start_x
     cursor_y = start_y
     row_height = 0
-    max_row_width = 1200
+    max_row_width = 1800
 
     for cluster in clusters:
         n = len(cluster)
@@ -141,13 +142,13 @@ def _compute_smart_layout(all_doc_ids, connections, start_x=120, start_y=120):
             bbox_h = CELL_H
         else:
             min_spacing = max(CELL_W, CELL_H)
-            radius = max(min_spacing, (n * min_spacing) / (2 * math.pi))
+            radius = max(min_spacing * 1.2, (n * min_spacing) / (2 * math.pi))
             bbox_w = 2 * radius + CELL_W
             bbox_h = 2 * radius + CELL_H
 
         if cursor_x + bbox_w > max_row_width and cursor_x > start_x:
             cursor_x = start_x
-            cursor_y += row_height + NODE_PAD
+            cursor_y += row_height + CLUSTER_GAP
             row_height = 0
 
         cx = cursor_x + bbox_w / 2
@@ -156,7 +157,7 @@ def _compute_smart_layout(all_doc_ids, connections, start_x=120, start_y=120):
         cluster_positions = _layout_cluster_circle(cluster, cx, cy)
         positions.update(cluster_positions)
 
-        cursor_x += bbox_w + NODE_PAD
+        cursor_x += bbox_w + CLUSTER_GAP
         row_height = max(row_height, bbox_h)
 
     min_x = min((p["x"] for p in positions.values()), default=0)

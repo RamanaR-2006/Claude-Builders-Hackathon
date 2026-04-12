@@ -168,3 +168,47 @@ def get_public_thumbnail(canvas_id, doc_id):
         return {"error": "Thumbnail file missing"}, 404
 
     return send_file(thumb_path, mimetype="image/png")
+
+
+def _validate_doc_in_canvas(canvas_id, doc_id):
+    """Verify a document belongs to a shared canvas snapshot."""
+    canvas = SharedCanvas.query.get(canvas_id)
+    if not canvas:
+        return None, None, ({"error": "Canvas not found"}, 404)
+    snap = json.loads(canvas.snapshot_data) if canvas.snapshot_data else {}
+    doc_ids_in_snap = {d["id"] for d in snap.get("documents", [])}
+    if doc_id not in doc_ids_in_snap:
+        return None, None, ({"error": "Document not in this canvas"}, 404)
+    doc = db.session.get(Document, doc_id)
+    if not doc:
+        return None, None, ({"error": "Document not found"}, 404)
+    return canvas, doc, None
+
+
+@share_bp.route("/explore/<int:canvas_id>/file/<int:doc_id>", methods=["GET"])
+@login_required
+def get_public_file(canvas_id, doc_id):
+    """Serve a document file from a shared canvas (read-only)."""
+    _, doc, err = _validate_doc_in_canvas(canvas_id, doc_id)
+    if err:
+        return err
+
+    filepath = os.path.join(current_app.config["UPLOAD_FOLDER"], doc.filename)
+    if not os.path.exists(filepath):
+        return {"error": "File missing from disk"}, 404
+
+    return send_file(filepath, download_name=doc.original_name)
+
+
+@share_bp.route("/explore/<int:canvas_id>/transcription/<int:doc_id>", methods=["GET"])
+@login_required
+def get_public_transcription(canvas_id, doc_id):
+    """Return transcription for an audio/video doc in a shared canvas."""
+    _, doc, err = _validate_doc_in_canvas(canvas_id, doc_id)
+    if err:
+        return err
+
+    return {
+        "transcription": doc.transcription,
+        "status": doc.transcription_status or "na",
+    }, 200
