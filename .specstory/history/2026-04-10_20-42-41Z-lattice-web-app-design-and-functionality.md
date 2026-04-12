@@ -17464,3 +17464,1358 @@ _**Agent (claude-4.6-opus-high-thinking)**_
 <summary>Tool use: **edit_file_v2**</summary>
 
 </details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Set localStorage tutorial flag in Register.jsx after successful registration",
+      "id": "tutorial-flag",
+      "status": "completed"
+    },
+    {
+      "content": "Create Tutorial.jsx: 8-step full-screen overlay with illustrations, animations, and navigation",
+      "id": "tutorial-component",
+      "status": "in_progress"
+    },
+    {
+      "content": "Add tutorial animation keyframes to index.css",
+      "id": "tutorial-animations",
+      "status": "pending"
+    },
+    {
+      "content": "Wire Tutorial into Home.jsx with conditional rendering and completion handler",
+      "id": "tutorial-wire",
+      "status": "pending"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Set localStorage tutorial flag in Register.jsx after successful registration",
+      "id": "tutorial-flag",
+      "status": "in_progress"
+    },
+    {
+      "content": "Create Tutorial.jsx: 8-step full-screen overlay with illustrations, animations, and navigation",
+      "id": "tutorial-component",
+      "status": "pending"
+    },
+    {
+      "content": "Add tutorial animation keyframes to index.css",
+      "id": "tutorial-animations",
+      "status": "pending"
+    },
+    {
+      "content": "Wire Tutorial into Home.jsx with conditional rendering and completion handler",
+      "id": "tutorial-wire",
+      "status": "pending"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now the big one — creating the Tutorial component with all 8 steps, illustrations, and animations.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Tutorial.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Set localStorage tutorial flag in Register.jsx after successful registration",
+      "id": "tutorial-flag",
+      "status": "completed"
+    },
+    {
+      "content": "Create Tutorial.jsx: 8-step full-screen overlay with illustrations, animations, and navigation",
+      "id": "tutorial-component",
+      "status": "completed"
+    },
+    {
+      "content": "Add tutorial animation keyframes to index.css",
+      "id": "tutorial-animations",
+      "status": "in_progress"
+    },
+    {
+      "content": "Wire Tutorial into Home.jsx with conditional rendering and completion handler",
+      "id": "tutorial-wire",
+      "status": "pending"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Set localStorage tutorial flag in Register.jsx after successful registration",
+      "id": "tutorial-flag",
+      "status": "completed"
+    },
+    {
+      "content": "Create Tutorial.jsx: 8-step full-screen overlay with illustrations, animations, and navigation",
+      "id": "tutorial-component",
+      "status": "in_progress"
+    },
+    {
+      "content": "Add tutorial animation keyframes to index.css",
+      "id": "tutorial-animations",
+      "status": "pending"
+    },
+    {
+      "content": "Wire Tutorial into Home.jsx with conditional rendering and completion handler",
+      "id": "tutorial-wire",
+      "status": "pending"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now add the tutorial animation keyframes to index.css.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/index.css</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/index.css</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Set localStorage tutorial flag in Register.jsx after successful registration",
+      "id": "tutorial-flag",
+      "status": "completed"
+    },
+    {
+      "content": "Create Tutorial.jsx: 8-step full-screen overlay with illustrations, animations, and navigation",
+      "id": "tutorial-component",
+      "status": "completed"
+    },
+    {
+      "content": "Add tutorial animation keyframes to index.css",
+      "id": "tutorial-animations",
+      "status": "completed"
+    },
+    {
+      "content": "Wire Tutorial into Home.jsx with conditional rendering and completion handler",
+      "id": "tutorial-wire",
+      "status": "in_progress"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Set localStorage tutorial flag in Register.jsx after successful registration",
+      "id": "tutorial-flag",
+      "status": "completed"
+    },
+    {
+      "content": "Create Tutorial.jsx: 8-step full-screen overlay with illustrations, animations, and navigation",
+      "id": "tutorial-component",
+      "status": "completed"
+    },
+    {
+      "content": "Add tutorial animation keyframes to index.css",
+      "id": "tutorial-animations",
+      "status": "in_progress"
+    },
+    {
+      "content": "Wire Tutorial into Home.jsx with conditional rendering and completion handler",
+      "id": "tutorial-wire",
+      "status": "pending"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now wire the Tutorial into Home.jsx.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now add the handler and render the Tutorial. Let me find the return statement.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now let me check for linter errors.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "frontend/src/components/Tutorial.jsx",
+    "frontend/src/pages/Home.jsx",
+    "frontend/src/pages/Register.jsx",
+    "frontend/src/index.css"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "frontend/src/components/Tutorial.jsx"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/pages/Home.jsx"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/pages/Register.jsx"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/index.css"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Set localStorage tutorial flag in Register.jsx after successful registration",
+      "id": "tutorial-flag",
+      "status": "completed"
+    },
+    {
+      "content": "Create Tutorial.jsx: 8-step full-screen overlay with illustrations, animations, and navigation",
+      "id": "tutorial-component",
+      "status": "completed"
+    },
+    {
+      "content": "Add tutorial animation keyframes to index.css",
+      "id": "tutorial-animations",
+      "status": "completed"
+    },
+    {
+      "content": "Wire Tutorial into Home.jsx with conditional rendering and completion handler",
+      "id": "tutorial-wire",
+      "status": "completed"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Set localStorage tutorial flag in Register.jsx after successful registration",
+      "id": "tutorial-flag",
+      "status": "completed"
+    },
+    {
+      "content": "Create Tutorial.jsx: 8-step full-screen overlay with illustrations, animations, and navigation",
+      "id": "tutorial-component",
+      "status": "completed"
+    },
+    {
+      "content": "Add tutorial animation keyframes to index.css",
+      "id": "tutorial-animations",
+      "status": "completed"
+    },
+    {
+      "content": "Wire Tutorial into Home.jsx with conditional rendering and completion handler",
+      "id": "tutorial-wire",
+      "status": "in_progress"
+    }
+  ],
+  "success": true,
+  "wasMerge": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+All four tasks are complete. Here's what was implemented:
+
+**1. Registration flag** (`Register.jsx`)
+- After `await register(email, password)` succeeds, `localStorage.setItem('lattice_tutorial_pending', 'true')` is set. This flag is never set during login, so the tutorial only triggers for new registrations.
+
+**2. Tutorial component** (`Tutorial.jsx`)
+- A full-screen overlay (`fixed inset-0 z-[300]`) with a frosted-glass background and a subtle grid pattern
+- **8 animated steps**, each with a custom inline SVG/component illustration:
+  1. **Welcome to Lattice** -- animated lattice logo with connection lines radiating outward
+  2. **Upload Documents** -- file type icons (PDF/Video/Audio) flowing into the + button
+  3. **Interactive Canvas** -- mock document nodes with lock/move indicators on a dashed canvas
+  4. **Connect Documents** -- two doc nodes connected by an animated bezier line with a diamond and description popup
+  5. **AI Auto-Link** -- sparkle badge with a network diagram showing strength scores
+  6. **Search & Highlights** -- mock search bar with highlighted result snippets
+  7. **AI Chat Assistant** -- mock chat panel with a user question and a cited AI response
+  8. **Share & Explore** -- share icon flowing into a gallery card preview
+- **Navigation**: Back/Next buttons, clickable step dots (active dot is wider with a pulse animation), and a "Skip tutorial" link
+- **Directional transitions**: slides in from the right when going forward, from the left when going back
+- Final step shows a prominent "Get Started" button instead of "Next"
+
+**3. Tutorial animations** (`index.css`)
+- `tutorial-slide-in-right` / `tutorial-slide-in-left` -- directional fade+slide for step transitions
+- `tutorial-float` -- subtle vertical bobbing for illustration elements
+- `tutorial-dot-pulse` -- scale pulse on the active step indicator dot
+
+**4. Wired into Home.jsx**
+- `showTutorial` state initialized from `localStorage`
+- `handleTutorialComplete` removes the flag and hides the overlay
+- Tutorial renders above all other content at `z-[300]`
+
+---
+
+_**User**_
+
+I have noticed a bug with the highlight feature, when the user creates a custom highlight, or searches or a term (which is then highlighted in the document), the document has unnecessary excess highlighting (such as the passage where the term is used is highlighted entirely). This is distracting for the user
+
+---
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<think><details><summary>Thought Process</summary>
+The user is reporting that when highlights are applied to PDFs, there's excessive highlighting - not just the exact term but entire passages/blocks around it. Let me look at the backend code that handles PDF highlighting to understand the issue.</details></think>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Let me look at the backend code responsible for PDF highlighting to understand the excess highlighting issue.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "contextAfter": 5,
+  "contextBefore": 3,
+  "path": "/Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/documents.py",
+  "pattern": "_block_line_rects|para_rects|para_annot|Layer 1"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "/Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/documents.py",
+  "pattern": "_block_line_rects|para_rects|para_annot|Layer 1",
+  "topFiles": [
+    {
+      "matchCount": 23,
+      "uri": "backend/app/documents.py"
+    }
+  ],
+  "totalFiles": 1,
+  "totalMatches": 7
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/documents.py</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Found it. The problem is clear: **Layer 1** in the `serve_file` function highlights the entire paragraph/block containing the match term, not just the term itself. The `_block_line_rects` function finds the text block that contains the match and highlights every line in that block with a lighter color. This is the "unnecessary excess highlighting" the user is seeing.
+
+The fix is simple — remove the paragraph-context highlighting (Layer 1) and keep only the exact-match highlighting (Layer 2).
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/documents.py</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+The fix removes the "Layer 1" paragraph-context highlighting that was painting the entire text block containing a match. Now only the exact matched term gets highlighted, at a clean 0.65 opacity. The `_block_line_rects` and `_lighten` helper functions are still in the file in case they're needed later, but they're no longer called during highlight rendering.
+
+---
+
+_**User**_
+
+what does the pin button do for the highlights?
+
+---
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/DocumentViewer.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+The **pin button** on a search highlight converts it from a temporary highlight into a **permanent, saved highlight**.
+
+Here's the distinction:
+
+- When you search for a term and open a document, the matching term appears highlighted in lava-orange. This is a **temporary search highlight** -- it only lasts for the current viewing session and disappears when you close the viewer or clear the search.
+
+- Clicking the **pin icon** on that search highlight pill calls `handlePersistSearch`, which saves the search term as a permanent highlight in the database (via `POST /documents/:id/highlights` with the orange color `#fb923c`). After pinning, it moves from the temporary "search highlight" pill into the regular saved highlights list -- meaning it will appear every time you open that document in the future, even without searching.
+
+- The **X button** next to the pin simply dismisses the temporary search highlight for the current session without saving it.
+
+In short: pin = "I want to keep seeing this term highlighted in this document permanently."
+
+---
+
+_**User**_
+
+i want to make a change, have the layer 1 highlight be used when it is queried in the chat feature by the user
+
+---
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<think><details><summary>Thought Process</summary>
+The user wants to bring back the Layer 1 (paragraph context) highlighting, but only when a document is opened via a chat citation click — not for regular search or custom highlights.
+
+Let me trace the flow:
+1. When a chat citation is clicked, `handleCitationClick` in Home.jsx sets `viewingDoc`, `searchPage`, and `searchQuery` (the quote)
+2. DocumentViewer opens with these props and builds a PDF URL with highlight params
+3. The backend `serve_file` endpoint renders the highlights
+
+I need to differentiate between a "chat citation" highlight and a regular "search/custom" highlight. The simplest approach would be to pass an extra query parameter to the backend (e.g., `?context_highlight=true`) when the source is a chat citation, and in the backend, apply the Layer 1 paragraph highlighting only for that case.
+
+
+Now I need to trace through the code paths to implement this. I'll add a flag in `handleCitationClick` to mark it as a citation-based view, pass that through to DocumentViewer so it can include the parameter when building the PDF URL, and then check for that parameter in the backend's `serve_file` to conditionally apply the Layer 1 highlighting.</details></think>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Let me trace the full flow from chat citation click through to the PDF rendering.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/DocumentViewer.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/documents.py</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now I also need to see where the DocumentViewer is rendered to understand how to pass a new prop.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "contextAfter": 7,
+  "path": "/Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx",
+  "pattern": "viewingDoc \u0026\u0026"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "/Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx",
+  "pattern": "viewingDoc \u0026\u0026",
+  "topFiles": [
+    {
+      "matchCount": 8,
+      "uri": "frontend/src/pages/Home.jsx"
+    }
+  ],
+  "totalFiles": 1,
+  "totalMatches": 1
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Clear picture. The flow is: chat citation click sets `searchQuery` to the quote, then `DocumentViewer` passes it as a highlight param to the backend. I need to:
+
+1. Track whether the viewer was opened from a **citation** (vs regular search)
+2. Pass that flag to `DocumentViewer`, which appends a `&context=1` param to the PDF URL
+3. Backend applies Layer 1 paragraph highlighting only when `context=1` is present
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now update `handleCloseViewer` to reset the citation mode, and the `handleSearchSelect` to ensure it's not in citation mode.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now pass `citationMode` to `DocumentViewer`.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now update `DocumentViewer` to accept the `citationMode` prop and append a `context=1` query param when building the PDF URL.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/DocumentViewer.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now update `buildPdfSrc` to include the `context=1` param when in citation mode.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/DocumentViewer.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now update the backend `serve_file` to apply paragraph-context highlighting only when `context=1` is present.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/backend/app/documents.py</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Let me verify there are no linter errors.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "frontend/src/pages/Home.jsx",
+    "frontend/src/components/DocumentViewer.jsx",
+    "backend/app/documents.py"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "frontend/src/pages/Home.jsx"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/components/DocumentViewer.jsx"
+    },
+    {
+      "relativeWorkspacePath": "backend/app/documents.py"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Here's what changed:
+
+- **When a chat citation is clicked**, `Home.jsx` sets `citationMode = true`, which gets passed to `DocumentViewer`. The viewer appends `&context=1` to the PDF URL.
+
+- **The backend** checks for `context=1`. When present, it applies the Layer 1 paragraph-context highlighting (lighter highlight over the surrounding block) in addition to the exact-match highlight. When absent (regular search, custom highlights), only the precise term gets highlighted.
+
+- **Closing the viewer** resets `citationMode` back to `false`.
+
+So now: regular search and custom highlights remain clean and precise, while chat citations get the broader paragraph context to help the user locate the quoted passage.
+
+---
+
+_**User**_
+
+the app looks perfect but I want to add some more features:
+when the user adds in a lot of documents it is hard to navigate the canvas to see all the documents, can you add a scroll or a zoom feature to make navigation easier?
+
+---
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Canvas.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+The canvas already has panning but no zoom. I need to add scroll-wheel zoom (pinch-to-zoom on trackpads) with a smooth transform-based approach. Let me implement this.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Canvas.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now I need to make sure `DocumentNode` drag handling accounts for the zoom level so dragging feels correct at any zoom. Let me check how it handles pointer events.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/DocumentNode.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+The drag handler in `DocumentNode` computes `dx`/`dy` from raw `clientX`/`clientY` differences, but when the canvas is zoomed, a 1px mouse move should translate to `1/zoom` px in world space. I need to pass the current zoom level to `DocumentNode` and divide the deltas by it.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/DocumentNode.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now update the drag handlers to divide deltas by zoom.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/DocumentNode.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now pass `zoom` from `Canvas` to each `DocumentNode`.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Canvas.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Let me check for linter errors.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "frontend/src/components/Canvas.jsx",
+    "frontend/src/components/DocumentNode.jsx"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "frontend/src/components/Canvas.jsx"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/components/DocumentNode.jsx"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Clean. Let me also verify the `onWheel` handler uses `{ passive: false }` so `preventDefault` works — React's synthetic `onWheel` is passive by default in modern browsers, which means `preventDefault` won't work. I need to attach the wheel handler via a native event listener instead.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Canvas.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now replace the inline `onWheel` with a `useEffect` that attaches a native event listener with `{ passive: false }`.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Canvas.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Now remove the `onWheel` prop from the JSX since we're using a native listener.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Canvas.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "frontend/src/components/Canvas.jsx",
+    "frontend/src/components/DocumentNode.jsx"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "frontend/src/components/Canvas.jsx"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/components/DocumentNode.jsx"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+No linter errors. Let me also check if there's anything in `Home.jsx` that might need to pass the sidebar or bottom buttons at a z-index that could conflict with the zoom bar.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "path": "/Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx",
+  "pattern": "bottom-4|bottom-6|bottom-8"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "/Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Home.jsx",
+  "pattern": "bottom-4|bottom-6|bottom-8",
+  "topFiles": [
+    {
+      "matchCount": 2,
+      "uri": "frontend/src/pages/Home.jsx"
+    }
+  ],
+  "totalFiles": 1,
+  "totalMatches": 2
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+The floating action buttons are at `bottom-6 right-6` and `bottom-6 left-6` with `z-40`/`z-[200]`. The zoom bar I added is at `bottom-4 left-1/2 z-30`, centered — that should sit nicely between the two button groups without overlap. Let me verify the final state of the files looks good.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Canvas.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Everything looks good. Here's a summary of what was implemented:
+
+**Zoom & Navigation Controls for the Canvas**
+
+1. **Scroll-wheel zoom** — Use your mouse scroll wheel (or trackpad pinch gesture) to zoom in and out. The zoom is anchored to the mouse cursor position, so it zooms into where you're pointing. Range is 20% to 200%.
+
+2. **Zoom control bar** — A new control bar at the bottom center of the canvas with:
+   - **Zoom out** (−) button
+   - **Current zoom percentage** display
+   - **Zoom in** (+) button
+   - **Fit to view** button — automatically adjusts the zoom and pan so all documents fit neatly within the viewport
+
+3. **Zoom-corrected dragging** — When zoomed in or out, dragging documents still feels natural because the pointer deltas are divided by the current zoom level.
+
+The panning (click-and-drag the canvas background) that was already there continues to work alongside the new zoom. You can pan + zoom together for smooth navigation across a large canvas.
+
+---
+
+_**User**_
+
+the scroll zoom is a bit too sensitive
+
+---
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Canvas.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Halved the zoom step from 0.1 to 0.05, so each scroll tick now changes the zoom by 5% instead of 10%. This applies to both the scroll wheel and the +/− buttons. Should feel much smoother now.
+
+---
+
+_**User**_
+
+reduce it more
+
+---
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Canvas.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Dropped it to 2.5% per scroll tick. Should feel much gentler now.

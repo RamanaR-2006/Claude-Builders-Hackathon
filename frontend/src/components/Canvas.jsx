@@ -1,8 +1,13 @@
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import api from '../api/axios';
 import DocumentNode from './DocumentNode';
 import ConnectionLine from './ConnectionLine';
 import ConnectionModal from './ConnectionModal';
+import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
+
+const MIN_ZOOM = 0.2;
+const MAX_ZOOM = 2.0;
+const ZOOM_STEP = 0.025;
 
 function pairKey(a, b) {
   return [Math.min(a, b), Math.max(a, b)].join(':');
@@ -76,9 +81,11 @@ export default function Canvas({
   const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [camera, setCamera] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
   const canvasRef = useRef(null);
   const innerRef = useRef(null);
   const cameraRef = useRef({ x: 0, y: 0 });
+  const zoomRef = useRef(1);
   const panRef = useRef({ active: false, startX: 0, startY: 0, camX: 0, camY: 0, moved: false });
 
   const pairIndexMap = {};
@@ -93,6 +100,12 @@ export default function Canvas({
     c._pairIndex = pairIndexMap[key]++;
     c._pairTotal = pairCounts[key];
   });
+
+  const applyTransform = useCallback(() => {
+    if (innerRef.current) {
+      innerRef.current.style.transform = `translate(${cameraRef.current.x}px, ${cameraRef.current.y}px) scale(${zoomRef.current})`;
+    }
+  }, []);
 
   const handlePositionChange = useCallback((id, x, y, persist) => {
     setDocs(prev => prev.map(d => d.id === id ? { ...d, position_x: x, position_y: y } : d));
@@ -191,16 +204,47 @@ export default function Canvas({
     const newX = panRef.current.camX + dx;
     const newY = panRef.current.camY + dy;
     cameraRef.current = { x: newX, y: newY };
-    if (innerRef.current) {
-      innerRef.current.style.transform = `translate(${newX}px, ${newY}px)`;
-    }
-  }, []);
+    applyTransform();
+  }, [applyTransform]);
 
   const handleCanvasPointerUp = useCallback(() => {
     if (!panRef.current.active) return;
     panRef.current.active = false;
     setIsPanning(false);
     setCamera({ ...cameraRef.current });
+  }, []);
+
+  const handleWheelRef = useRef(null);
+  handleWheelRef.current = (e) => {
+    e.preventDefault();
+    const rect = canvasRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const oldZoom = zoomRef.current;
+    const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+    const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, oldZoom + delta));
+    if (newZoom === oldZoom) return;
+
+    const worldX = (mouseX - cameraRef.current.x) / oldZoom;
+    const worldY = (mouseY - cameraRef.current.y) / oldZoom;
+
+    const newCamX = mouseX - worldX * newZoom;
+    const newCamY = mouseY - worldY * newZoom;
+
+    zoomRef.current = newZoom;
+    cameraRef.current = { x: newCamX, y: newCamY };
+    applyTransform();
+    setZoom(newZoom);
+    setCamera({ x: newCamX, y: newCamY });
+  };
+
+  useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const handler = (e) => handleWheelRef.current(e);
+    el.addEventListener('wheel', handler, { passive: false });
+    return () => el.removeEventListener('wheel', handler);
   }, []);
 
   const handleCanvasClick = () => {
@@ -215,6 +259,62 @@ export default function Canvas({
     setActiveConn(null);
   };
 
+  const handleZoomIn = useCallback(() => {
+    const newZoom = Math.min(MAX_ZOOM, zoomRef.current + ZOOM_STEP);
+    const rect = canvasRef.current.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const worldX = (cx - cameraRef.current.x) / zoomRef.current;
+    const worldY = (cy - cameraRef.current.y) / zoomRef.current;
+    cameraRef.current = { x: cx - worldX * newZoom, y: cy - worldY * newZoom };
+    zoomRef.current = newZoom;
+    applyTransform();
+    setZoom(newZoom);
+    setCamera({ ...cameraRef.current });
+  }, [applyTransform]);
+
+  const handleZoomOut = useCallback(() => {
+    const newZoom = Math.max(MIN_ZOOM, zoomRef.current - ZOOM_STEP);
+    const rect = canvasRef.current.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const worldX = (cx - cameraRef.current.x) / zoomRef.current;
+    const worldY = (cy - cameraRef.current.y) / zoomRef.current;
+    cameraRef.current = { x: cx - worldX * newZoom, y: cy - worldY * newZoom };
+    zoomRef.current = newZoom;
+    applyTransform();
+    setZoom(newZoom);
+    setCamera({ ...cameraRef.current });
+  }, [applyTransform]);
+
+  const handleFitToView = useCallback(() => {
+    if (docs.length === 0) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    let minX = Infinity, minY = Infinity, maxX2 = -Infinity, maxY2 = -Infinity;
+    docs.forEach(d => {
+      minX = Math.min(minX, d.position_x);
+      minY = Math.min(minY, d.position_y);
+      maxX2 = Math.max(maxX2, d.position_x + 160);
+      maxY2 = Math.max(maxY2, d.position_y + 130);
+    });
+    const contentW = maxX2 - minX;
+    const contentH = maxY2 - minY;
+    const padding = 80;
+    const scaleX = (rect.width - padding * 2) / contentW;
+    const scaleY = (rect.height - padding * 2) / contentH;
+    const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.min(scaleX, scaleY)));
+    const centerX = (minX + maxX2) / 2;
+    const centerY = (minY + maxY2) / 2;
+    const newCamX = rect.width / 2 - centerX * newZoom;
+    const newCamY = rect.height / 2 - centerY * newZoom;
+
+    zoomRef.current = newZoom;
+    cameraRef.current = { x: newCamX, y: newCamY };
+    applyTransform();
+    setZoom(newZoom);
+    setCamera({ x: newCamX, y: newCamY });
+  }, [docs, applyTransform]);
+
   const pairConnsForActive = activeConn
     ? connections.filter(c => pairKey(c.source_doc_id, c.target_doc_id) === pairKey(activeConn.source_doc_id, activeConn.target_doc_id))
     : [];
@@ -225,6 +325,8 @@ export default function Canvas({
 
   const maxX = Math.max(docs.reduce((m, d) => Math.max(m, d.position_x + 200), 0), 3000);
   const maxY = Math.max(docs.reduce((m, d) => Math.max(m, d.position_y + 200), 0), 2000);
+
+  const zoomPercent = Math.round(zoom * 100);
 
   return (
     <div
@@ -239,7 +341,6 @@ export default function Canvas({
     >
       <LatticeBackground />
 
-      {/* Empty state — outside the camera so it stays viewport-centered */}
       {docs.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="text-center">
@@ -249,14 +350,13 @@ export default function Canvas({
         </div>
       )}
 
-      {/* Camera — transform shifts freely in all directions */}
       <div
         ref={innerRef}
-        className="absolute"
+        className="absolute origin-top-left"
         style={{
           width: maxX,
           height: maxY,
-          transform: `translate(${camera.x}px, ${camera.y}px)`,
+          transform: `translate(${camera.x}px, ${camera.y}px) scale(${zoom})`,
           willChange: 'transform',
         }}
       >
@@ -290,6 +390,7 @@ export default function Canvas({
             isSelected={selectedIds?.has(doc.id)}
             isAnchor={anchorIds?.has(doc.id)}
             animating={animating}
+            zoom={zoom}
             onPositionChange={handlePositionChange}
             onToggleLock={handleToggleLock}
             onDelete={handleDelete}
@@ -312,6 +413,37 @@ export default function Canvas({
             onNavConn={handleNavConn}
           />
         )}
+      </div>
+
+      {/* Zoom controls */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 bg-surface-800/90 backdrop-blur-sm border border-surface-600 rounded-xl px-2 py-1.5 shadow-lg shadow-black/30">
+        <button
+          onClick={handleZoomOut}
+          disabled={zoom <= MIN_ZOOM}
+          className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-surface-600 transition cursor-pointer disabled:opacity-30 disabled:cursor-default"
+          title="Zoom out"
+        >
+          <ZoomOut size={16} />
+        </button>
+        <span className="text-[11px] text-gray-400 font-medium w-10 text-center tabular-nums select-none">
+          {zoomPercent}%
+        </span>
+        <button
+          onClick={handleZoomIn}
+          disabled={zoom >= MAX_ZOOM}
+          className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-surface-600 transition cursor-pointer disabled:opacity-30 disabled:cursor-default"
+          title="Zoom in"
+        >
+          <ZoomIn size={16} />
+        </button>
+        <div className="w-px h-5 bg-surface-600 mx-0.5" />
+        <button
+          onClick={handleFitToView}
+          className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-surface-600 transition cursor-pointer"
+          title="Fit all documents in view"
+        >
+          <Maximize size={16} />
+        </button>
       </div>
     </div>
   );

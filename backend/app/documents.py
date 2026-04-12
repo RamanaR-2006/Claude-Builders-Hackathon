@@ -296,6 +296,8 @@ def serve_file(doc_id):
     if not terms:
         return send_file(filepath, download_name=doc.original_name)
 
+    use_context = request.args.get("context") == "1"
+
     try:
         import fitz
 
@@ -304,17 +306,16 @@ def serve_file(doc_id):
             for term, rgb in terms:
                 rects = page.search_for(term)
                 for match_rect in rects:
-                    # Layer 1 — paragraph context: lighter highlight over the whole block
-                    para_rects = _block_line_rects(page, match_rect)
-                    if para_rects:
-                        para_annot = page.add_highlight_annot(para_rects)
-                        para_annot.set_colors(stroke=_lighten(rgb, 0.55))
-                        para_annot.update(opacity=0.35)
+                    if use_context:
+                        para_rects = _block_line_rects(page, match_rect)
+                        if para_rects:
+                            para_annot = page.add_highlight_annot(para_rects)
+                            para_annot.set_colors(stroke=_lighten(rgb, 0.55))
+                            para_annot.update(opacity=0.3)
 
-                    # Layer 2 — exact match: darker highlight over the found text
                     annot = page.add_highlight_annot(match_rect)
                     annot.set_colors(stroke=rgb)
-                    annot.update(opacity=0.75)
+                    annot.update(opacity=0.65)
         buf = io.BytesIO()
         pdf.save(buf)
         pdf.close()

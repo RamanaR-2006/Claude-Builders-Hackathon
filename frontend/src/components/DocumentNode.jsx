@@ -21,6 +21,7 @@ export default function DocumentNode({
   isSelected,
   isAnchor,
   animating,
+  zoom = 1,
   onPositionChange,
   onToggleLock,
   onDelete,
@@ -49,23 +50,23 @@ export default function DocumentNode({
 
   const handlePointerMove = useCallback((e) => {
     if (!dragging) return;
-    const dx = e.clientX - dragStart.current.x;
-    const dy = e.clientY - dragStart.current.y;
+    const dx = (e.clientX - dragStart.current.x) / zoom;
+    const dy = (e.clientY - dragStart.current.y) / zoom;
     const newX = Math.max(0, dragStart.current.origX + dx);
     const newY = Math.max(0, dragStart.current.origY + dy);
     onPositionChange(doc.id, newX, newY, false);
-  }, [dragging, doc.id, onPositionChange]);
+  }, [dragging, doc.id, zoom, onPositionChange]);
 
   const handlePointerUp = useCallback((e) => {
     if (!dragging) return;
     setDragging(false);
     nodeRef.current?.releasePointerCapture(e.pointerId);
-    const dx = e.clientX - dragStart.current.x;
-    const dy = e.clientY - dragStart.current.y;
+    const dx = (e.clientX - dragStart.current.x) / zoom;
+    const dy = (e.clientY - dragStart.current.y) / zoom;
     const newX = Math.max(0, dragStart.current.origX + dx);
     const newY = Math.max(0, dragStart.current.origY + dy);
     onPositionChange(doc.id, newX, newY, true);
-  }, [dragging, doc.id, onPositionChange]);
+  }, [dragging, doc.id, zoom, onPositionChange]);
 
   const handleClick = (e) => {
     if (selectMode) {

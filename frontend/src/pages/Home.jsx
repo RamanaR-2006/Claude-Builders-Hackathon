@@ -116,6 +116,7 @@ export default function Home() {
     setViewingDoc(null);
     setSearchPage(null);
     setSearchQuery('');
+    setCitationMode(false);
   };
 
   const handleToggleAutoLink = () => {
@@ -264,6 +265,8 @@ export default function Home() {
     try { localStorage.removeItem('lattice_chat'); } catch {}
   };
 
+  const [citationMode, setCitationMode] = useState(false);
+
   const handleCitationClick = (citation) => {
     let doc = docs.find(d => d.id === citation.doc_id);
     if (!doc && citation.doc_name) {
@@ -273,6 +276,7 @@ export default function Home() {
       );
     }
     if (!doc) return;
+    setCitationMode(true);
     setViewingDoc(doc);
     if (doc.file_type === 'audio' || doc.file_type === 'video') {
       setSearchPage(null);
@@ -395,6 +399,7 @@ export default function Home() {
           doc={viewingDoc}
           searchQuery={searchQuery}
           searchPage={searchPage}
+          citationMode={citationMode}
           onClose={handleCloseViewer}
         />
       )}

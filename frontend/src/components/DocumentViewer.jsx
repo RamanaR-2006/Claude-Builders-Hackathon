@@ -33,7 +33,7 @@ function SearchHighlightPill({ term, onPersist, onDismiss }) {
   );
 }
 
-export default function DocumentViewer({ doc, searchQuery, searchPage, onClose }) {
+export default function DocumentViewer({ doc, searchQuery, searchPage, citationMode, onClose }) {
   const fileUrl = `/api/documents/${doc.id}/file`;
   const [highlights, setHighlights] = useState([]);
   const [newTerm, setNewTerm] = useState('');
@@ -68,14 +68,21 @@ export default function DocumentViewer({ doc, searchQuery, searchPage, onClose }
       pairs.push(`${encodeURIComponent(searchQuery)}:fb923c`);
     }
     let src = fileUrl;
+    const params = [];
     if (pairs.length) {
-      src += `?highlights=${pairs.join(',')}`;
+      params.push(`highlights=${pairs.join(',')}`);
+    }
+    if (citationMode && showSearch && searchQuery) {
+      params.push('context=1');
+    }
+    if (params.length) {
+      src += `?${params.join('&')}`;
     }
     if (searchPage && showSearch) {
-      src += (pairs.length ? '' : '?') + `#page=${searchPage}`;
+      src += `#page=${searchPage}`;
     }
     return src;
-  }, [highlights, showSearch, searchQuery, searchPage, fileUrl]);
+  }, [highlights, showSearch, searchQuery, searchPage, citationMode, fileUrl]);
 
   const handleAddHighlight = async () => {
     const term = newTerm.trim();
