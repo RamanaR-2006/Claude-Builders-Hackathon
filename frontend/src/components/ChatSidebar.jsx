@@ -53,12 +53,13 @@ function formatMarkdownLine(line, keyPrefix) {
 
 function renderAssistantMessage(text, citations, onCitationClick, docs) {
   // Replace citation markers with placeholder tokens
-  const citationPattern = /\[DOC:(\d+):(\d+):"([^"]*?)"\]/g;
+  const citationPattern = /\[DOC:([^:]+):(\d+):"([^"]*?)"\]/g;
   const citationMap = {};
   let citIdx = 0;
-  const cleanText = text.replace(citationPattern, (full, docId, page, quote) => {
+  const cleanText = text.replace(citationPattern, (full, docName, page, quote) => {
     const token = `__CIT_${citIdx}__`;
-    citationMap[token] = { docId: parseInt(docId), page: parseInt(page), quote };
+    const doc = docs?.find(d => d.original_name.replace(/\.[^/.]+$/, '') === docName.trim());
+    citationMap[token] = { docId: doc?.id ?? null, docName: docName.trim(), page: parseInt(page), quote };
     citIdx++;
     return token;
   });
@@ -151,7 +152,7 @@ function renderLineWithCitations(line, citationMap, onCitationClick, docs, keyPr
           doc_id: citData.docId,
           page: citData.page,
           quote: citData.quote,
-          doc_name: doc?.original_name || `Doc ${citData.docId}`,
+          doc_name: doc?.original_name || citData.docName,
         };
         elements.push(<CitationChip key={`${keyPrefix}-c${i}`} citation={cit} onClick={onCitationClick} />);
       }
@@ -163,14 +164,14 @@ function renderLineWithCitations(line, citationMap, onCitationClick, docs, keyPr
 
 function CitationSources({ citationMap, docs, onCitationClick }) {
   const byDoc = {};
-  Object.values(citationMap).forEach(({ docId, page, quote }) => {
-    if (!byDoc[docId]) {
+  Object.values(citationMap).forEach(({ docId, docName, page, quote }) => {
+    const key = docId ?? docName;
+    if (!byDoc[key]) {
       const doc = docs?.find(d => d.id === docId);
-      byDoc[docId] = { docId, name: doc?.original_name || `Doc ${docId}`, entries: [] };
+      byDoc[key] = { docId, name: doc?.original_name || docName, entries: [] };
     }
-    // avoid exact duplicate chips (same page+quote)
-    const already = byDoc[docId].entries.some(e => e.page === page && e.quote === quote);
-    if (!already) byDoc[docId].entries.push({ page, quote });
+    const already = byDoc[key].entries.some(e => e.page === page && e.quote === quote);
+    if (!already) byDoc[key].entries.push({ page, quote });
   });
 
   const sources = Object.values(byDoc);

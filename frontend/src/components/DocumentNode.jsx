@@ -135,7 +135,7 @@ export default function DocumentNode({
         {/* Label */}
         <div className="px-3 py-2 border-t border-surface-600">
           <p className="text-xs font-medium text-gray-300 truncate" title={doc.original_name}>
-            {doc.original_name}
+            {doc.original_name.replace(/\.[^/.]+$/, '')}
           </p>
           {(doc.file_type === 'audio' || doc.file_type === 'video') && doc.transcription_status && doc.transcription_status !== 'na' && (
             <div className="flex items-center gap-1 mt-0.5">

@@ -13,6 +13,14 @@ MAX_DOCS_IN_CONTEXT = 20
 MAX_TOTAL_CHARS = 50000
 
 
+def _cite_name(doc):
+    """Return a citation-safe name for a document (original name without extension)."""
+    name = doc.original_name
+    if '.' in name:
+        name = name.rsplit('.', 1)[0]
+    return name.replace(':', '_').replace('"', '_')
+
+
 @chat_bp.route("/chat", methods=["POST"])
 @login_required
 def chat():
@@ -42,21 +50,21 @@ def chat():
         text = _extract_text_full(doc, upload_dir)
         if total_chars + len(text) > MAX_TOTAL_CHARS:
             text = text[: MAX_TOTAL_CHARS - total_chars]
-        doc_summaries.append(f'[DOC_ID:{doc.id}] "{doc.original_name}"\n{text}')
+        doc_summaries.append(f'[DOC_ID:"{_cite_name(doc)}"] "{doc.original_name}"\n{text}')
         total_chars += len(text)
         if total_chars >= MAX_TOTAL_CHARS:
             break
 
     docs_context = "\n\n---\n\n".join(doc_summaries)
 
-    valid_doc_ids = [doc.id for doc in docs[:MAX_DOCS_IN_CONTEXT]]
+    valid_doc_names = [f'"{_cite_name(doc)}"' for doc in docs[:MAX_DOCS_IN_CONTEXT]]
 
     system_prompt = (
         "You are a knowledgeable research assistant. The user has uploaded documents, "
         "and you must answer questions using ONLY the content provided below.\n\n"
         "CITATION RULES — follow exactly:\n"
-        "1. Use this format: [DOC:document_id:page_number:\"exact quote\"]\n"
-        f"2. Only use these document IDs: {valid_doc_ids}. NEVER invent or guess an ID.\n"
+        "1. Use this format: [DOC:document_name:page_number:\"exact quote\"]\n"
+        f"2. Only use these document names: {valid_doc_names}. NEVER invent or guess a name.\n"
         "3. The quote must be copied verbatim from the [Page N] section of the document text. "
         "Use the page number shown in the [Page N] label immediately before the quoted text. "
         "Copy the text character-for-character including punctuation — do NOT paraphrase.\n"
@@ -75,8 +83,8 @@ def chat():
         role = h.get("role", "user")
         content = h.get("content", "")
         if role == "assistant":
-            # Strip citation markers from history to avoid model confusing old IDs
-            content = re.sub(r'\[DOC:\d+:\d+:"[^"]*?"\]', '[cited]', content)
+            # Strip citation markers from history to avoid model confusing old names
+            content = re.sub(r'\[DOC:[^:]+:\d+:"[^"]*?"\]', '[cited]', content)
         if role in ("user", "assistant") and content:
             messages.append({"role": role, "content": content})
     messages.append({"role": "user", "content": user_message})
@@ -105,22 +113,23 @@ def chat():
 
 
 def _parse_citations(text, docs):
-    """Parse [DOC:id:page:"quote"] markers from the response."""
-    doc_map = {d.id: d for d in docs}
+    """Parse [DOC:name:page:"quote"] markers from the response."""
+    name_map = {_cite_name(d): d for d in docs}
     citations = []
-    pattern = r'\[DOC:(\d+):(\d+):"([^"]*?)"\]'
+    pattern = r'\[DOC:([^:]+):(\d+):"([^"]*?)"\]'
 
     for match in re.finditer(pattern, text):
-        doc_id = int(match.group(1))
+        doc_name = match.group(1).strip()
         page = int(match.group(2))
         quote = match.group(3)
 
-        if doc_id in doc_map:
+        doc = name_map.get(doc_name)
+        if doc:
             citations.append({
-                "doc_id": doc_id,
+                "doc_id": doc.id,
                 "page": page,
                 "quote": quote,
-                "doc_name": doc_map[doc_id].original_name,
+                "doc_name": doc.original_name,
             })
 
     return citations

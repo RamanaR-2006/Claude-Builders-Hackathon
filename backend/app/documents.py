@@ -108,10 +108,12 @@ def _block_line_rects(page, match_rect):
 
 def _transcribe_media(filepath, file_type):
     """Transcribe audio/video via OpenAI Whisper. Returns transcript string or None."""
+    import logging
     import os
     import tempfile
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
+        logging.error("Transcription failed: OPENAI_API_KEY not set")
         return None
     try:
         from openai import OpenAI
@@ -129,8 +131,29 @@ def _transcribe_media(filepath, file_type):
                 capture_output=True, timeout=120,
             )
             if result.returncode != 0 or not os.path.exists(tmp_audio.name):
+                logging.error(f"ffmpeg audio extraction failed: {result.stderr.decode()[:300]}")
+                if tmp_audio and os.path.exists(tmp_audio.name):
+                    os.unlink(tmp_audio.name)
                 return None
             audio_path = tmp_audio.name
+
+        # Whisper API limit is 25 MB — compress with ffmpeg if needed
+        WHISPER_LIMIT = 25 * 1024 * 1024
+        if os.path.getsize(audio_path) > WHISPER_LIMIT:
+            compressed = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
+            compressed.close()
+            result = subprocess.run(
+                ["ffmpeg", "-y", "-i", audio_path, "-acodec", "mp3", "-b:a", "32k", compressed.name],
+                capture_output=True, timeout=120,
+            )
+            if result.returncode == 0 and os.path.exists(compressed.name):
+                if tmp_audio:
+                    os.unlink(tmp_audio.name)
+                tmp_audio = compressed
+                audio_path = compressed.name
+            else:
+                logging.error(f"ffmpeg compression failed: {result.stderr.decode()[:300]}")
+                os.unlink(compressed.name)
 
         with open(audio_path, "rb") as f:
             response = client.audio.transcriptions.create(
@@ -143,7 +166,8 @@ def _transcribe_media(filepath, file_type):
             os.unlink(tmp_audio.name)
 
         return response.strip() if isinstance(response, str) else str(response).strip()
-    except Exception:
+    except Exception as e:
+        logging.error(f"Transcription error: {e}")
         return None
 
 
@@ -298,6 +322,18 @@ def serve_file(doc_id):
         return send_file(buf, mimetype="application/pdf", download_name=doc.original_name)
     except Exception:
         return send_file(filepath, download_name=doc.original_name)
+
+
+@documents_bp.route("/<int:doc_id>/transcription", methods=["GET"])
+@login_required
+def get_transcription(doc_id):
+    doc = Document.query.filter_by(id=doc_id, user_id=current_user.id).first()
+    if not doc:
+        return {"error": "Document not found"}, 404
+    return jsonify({
+        "transcription": doc.transcription,
+        "status": doc.transcription_status,
+    }), 200
 
 
 @documents_bp.route("/<int:doc_id>/thumbnail", methods=["GET"])

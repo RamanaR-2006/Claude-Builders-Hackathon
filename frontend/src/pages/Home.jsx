@@ -44,8 +44,17 @@ export default function Home() {
 
   // Chat state
   const [chatOpen, setChatOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState([]);
+  const [chatMessages, setChatMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem('lattice_chat');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [chatLoading, setChatLoading] = useState(false);
+
+  useEffect(() => {
+    try { localStorage.setItem('lattice_chat', JSON.stringify(chatMessages)); } catch {}
+  }, [chatMessages]);
 
   const addToast = useCallback((message, type = 'error') => {
     const id = ++toastId;
@@ -246,10 +255,17 @@ export default function Home() {
 
   const handleChatReset = () => {
     setChatMessages([]);
+    try { localStorage.removeItem('lattice_chat'); } catch {}
   };
 
   const handleCitationClick = (citation) => {
-    const doc = docs.find(d => d.id === citation.doc_id);
+    let doc = docs.find(d => d.id === citation.doc_id);
+    if (!doc && citation.doc_name) {
+      doc = docs.find(d =>
+        d.original_name === citation.doc_name ||
+        d.original_name.replace(/\.[^/.]+$/, '') === citation.doc_name.replace(/\.[^/.]+$/, '')
+      );
+    }
     if (!doc) return;
     setViewingDoc(doc);
     setSearchPage(citation.page);

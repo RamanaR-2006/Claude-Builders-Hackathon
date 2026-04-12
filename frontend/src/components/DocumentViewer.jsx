@@ -40,10 +40,18 @@ export default function DocumentViewer({ doc, searchQuery, searchPage, onClose }
   const [newColor, setNewColor] = useState(COLOR_PRESETS[0]);
   const [showSearch, setShowSearch] = useState(!!searchQuery);
   const [iframeKey, setIframeKey] = useState(0);
+  const [transcription, setTranscription] = useState(null);
+  const [transcriptionStatus, setTranscriptionStatus] = useState(doc.transcription_status);
 
   useEffect(() => {
     if (doc.file_type === 'pdf') {
       api.get(`/documents/${doc.id}/highlights`).then(res => setHighlights(res.data)).catch(() => {});
+    }
+    if (doc.file_type === 'audio' || doc.file_type === 'video') {
+      api.get(`/documents/${doc.id}/transcription`).then(res => {
+        setTranscription(res.data.transcription);
+        setTranscriptionStatus(res.data.status);
+      }).catch(() => {});
     }
   }, [doc.id, doc.file_type]);
 
@@ -108,7 +116,7 @@ export default function DocumentViewer({ doc, searchQuery, searchPage, onClose }
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="bg-surface-800 rounded-2xl shadow-2xl shadow-black/50 border border-surface-600 w-full max-w-3xl max-h-[85vh] mx-4 flex flex-col overflow-hidden"
+        className={`bg-surface-800 rounded-2xl shadow-2xl shadow-black/50 border border-surface-600 w-full mx-4 flex flex-col overflow-hidden ${doc.file_type === 'audio' ? 'max-w-2xl h-[75vh]' : 'max-w-3xl max-h-[85vh]'}`}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -203,14 +211,32 @@ export default function DocumentViewer({ doc, searchQuery, searchPage, onClose }
           )}
 
           {doc.file_type === 'audio' && (
-            <div className="flex flex-col items-center justify-center p-12 gap-6">
-              <div className="w-24 h-24 rounded-full bg-ember-500/10 flex items-center justify-center">
-                <Music size={40} className="text-ember-400" />
+            <div className="flex flex-col h-full">
+              {/* Player */}
+              <div className="flex flex-col items-center gap-4 px-8 py-6 border-b border-surface-600 shrink-0">
+                <div className="w-16 h-16 rounded-full bg-ember-500/10 flex items-center justify-center">
+                  <Music size={28} className="text-ember-400" />
+                </div>
+                <audio src={fileUrl} controls autoPlay className="w-full max-w-md">
+                  Your browser does not support the audio element.
+                </audio>
               </div>
-              <p className="text-sm text-gray-400">{doc.original_name}</p>
-              <audio src={fileUrl} controls autoPlay className="w-full max-w-md">
-                Your browser does not support the audio element.
-              </audio>
+              {/* Transcription */}
+              <div className="flex-1 overflow-y-auto px-8 py-5 min-h-0">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-600 mb-3">Transcript</p>
+                {transcriptionStatus === 'pending' && (
+                  <p className="text-sm text-ember-400">Transcribing…</p>
+                )}
+                {transcriptionStatus === 'failed' && (
+                  <p className="text-sm text-magma-400">Transcription failed. Check server logs for details.</p>
+                )}
+                {transcriptionStatus === 'na' && (
+                  <p className="text-sm text-gray-500">No transcription available.</p>
+                )}
+                {transcriptionStatus === 'done' && transcription && (
+                  <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{transcription}</p>
+                )}
+              </div>
             </div>
           )}
 

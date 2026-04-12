@@ -10,17 +10,16 @@ function pairKey(a, b) {
 
 function LatticeBackground() {
   const { nodes, edges } = useMemo(() => {
-    const COLS = 9;
-    const ROWS = 6;
+    const COLS = 11;
+    const ROWS = 8;
     const ns = [];
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         const baseX = (c + 0.5) / COLS * 100;
         const baseY = (r + 0.5) / ROWS * 100;
-        // Deterministic jitter so layout is stable
-        const jx = Math.sin(r * 7.3 + c * 13.1) * 3.5;
-        const jy = Math.cos(r * 11.7 + c * 4.9) * 3.5;
-        ns.push({ x: baseX + jx, y: baseY + jy, idx: r * COLS + c });
+        const jx = Math.sin(r * 7.3 + c * 13.1) * 4.5;
+        const jy = Math.cos(r * 11.7 + c * 4.9) * 4.5;
+        ns.push({ x: baseX + jx, y: baseY + jy });
       }
     }
     const es = [];
@@ -31,13 +30,15 @@ function LatticeBackground() {
         if (r < ROWS - 1) es.push([i, i + COLS]);
         if (c < COLS - 1 && r < ROWS - 1 && (r + c) % 2 === 0) es.push([i, i + COLS + 1]);
         if (c > 0 && r < ROWS - 1 && (r + c) % 2 === 1) es.push([i, i + COLS - 1]);
+        if (c < COLS - 2 && r < ROWS - 1 && (r * c) % 7 === 0) es.push([i, i + COLS + 2]);
+        if (c < COLS - 1 && r < ROWS - 2 && (r * c) % 5 === 0) es.push([i, i + COLS * 2 + 1]);
       }
     }
     return { nodes: ns, edges: es };
   }, []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ opacity: 0.07 }}>
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
       <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
         {edges.map(([i, j], idx) => (
           <line
@@ -45,39 +46,19 @@ function LatticeBackground() {
             x1={`${nodes[i].x}%`} y1={`${nodes[i].y}%`}
             x2={`${nodes[j].x}%`} y2={`${nodes[j].y}%`}
             stroke="#fb923c"
-            strokeWidth="0.8"
-          >
-            <animate
-              attributeName="opacity"
-              values="0.12;0.45;0.12"
-              dur={`${3 + (idx % 5)}s`}
-              begin={`${(idx * 0.17) % 4}s`}
-              repeatCount="indefinite"
-            />
-          </line>
+            strokeWidth="0.6"
+            opacity="0.08"
+          />
         ))}
         {nodes.map((node, i) => (
           <circle
             key={i}
             cx={`${node.x}%`}
             cy={`${node.y}%`}
+            r="1.5"
             fill="#fb923c"
-          >
-            <animate
-              attributeName="r"
-              values="1.5;2.8;1.5"
-              dur={`${2.5 + (i % 5) * 0.6}s`}
-              begin={`${(i * 0.31) % 4}s`}
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="opacity"
-              values="0.35;0.85;0.35"
-              dur={`${2.5 + (i % 5) * 0.6}s`}
-              begin={`${(i * 0.31) % 4}s`}
-              repeatCount="indefinite"
-            />
-          </circle>
+            opacity="0.2"
+          />
         ))}
       </svg>
     </div>
