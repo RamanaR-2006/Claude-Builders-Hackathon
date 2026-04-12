@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { LogOut, Search, Loader2, Sparkles, List, LayoutGrid, Share2, Compass, MessageSquarePlus } from 'lucide-react';
+import { LogOut, Search, Loader2, Sparkles, List, LayoutGrid, Share2, Compass, MessageSquarePlus, BookOpen } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-export default function Navbar({ onSearch, searching, selectMode, onAutoLink, onToggleSidebar, onOrganize, organizing, onShare, onFeedback }) {
+export default function Navbar({ onSearch, searching, selectMode, onAutoLink, onToggleSidebar, onOrganize, organizing, onShare, onFeedback, onTutorial }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [query, setQuery] = useState('');
@@ -129,6 +129,13 @@ export default function Navbar({ onSearch, searching, selectMode, onAutoLink, on
                 <p className="text-sm text-gray-200 truncate" title={user?.email}>{user?.email}</p>
               </div>
               <div className="py-1">
+                <button
+                  onClick={() => { setProfileOpen(false); onTutorial?.(); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-lava-400 hover:bg-lava-500/10 hover:text-lava-300 transition cursor-pointer border-b border-surface-600"
+                >
+                  <BookOpen size={16} />
+                  View Tutorial
+                </button>
                 <button
                   onClick={() => { setProfileOpen(false); onFeedback?.(); }}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-300 hover:bg-surface-700 hover:text-lava-400 transition cursor-pointer"

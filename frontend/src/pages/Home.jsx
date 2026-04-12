@@ -301,6 +301,7 @@ export default function Home() {
         organizing={organizing}
         onShare={() => setShowShareModal(true)}
         onFeedback={() => setShowFeedback(true)}
+        onTutorial={() => setShowTutorial(true)}
       />
 
       {searchResults !== null && (
