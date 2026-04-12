@@ -43,6 +43,7 @@ export default function Register() {
     setLoading(true);
     try {
       await register(email, password);
+      localStorage.setItem('lattice_tutorial_pending', 'true');
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed');
     } finally {

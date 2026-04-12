@@ -17123,3 +17123,344 @@ _**Agent (claude-4.6-opus-high-thinking)**_
 _**Agent (claude-4.6-opus-high-thinking)**_
 
 Since the Google Form already has its own full survey, the modal can be replaced with a simple redirect. No need for the in-app form fields anymore.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/FeedbackModal.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Actually, calling side effects directly in a render function is bad practice and could cause issues with React strict mode. Let me do it properly with `useEffect`.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/FeedbackModal.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "frontend/src/components/FeedbackModal.jsx"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "frontend/src/components/FeedbackModal.jsx"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Done. The "Feedback Survey" button in the profile dropdown now opens your [Google Form](https://docs.google.com/forms/d/e/1FAIpQLSfYqu7VFCN540e_on4B5istgHmFdR2Y_SMPDLVF_Hs6_7YSww/viewform) in a new tab and shows a toast confirming it opened. The old in-app survey form with the mailto: logic has been removed entirely since the Google Form already handles all the questions.
+
+---
+
+_**User**_
+
+The app is on its finishing touches now, I want to add a tutorial for first-time users on how to use our app. Essentially when a user registers an account, after registration it should lead them into a new tutorial view. The tutorial should be extensive and detailed, sleek and stylish with animations. This tutorial should only play for first-time users registering (not on logins, as that would cause lag).
+
+---
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+Let me explore the registration flow and how the app handles post-registration navigation to understand where to hook in the tutorial.
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Register.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/contexts/AuthContext.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/App.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/index.css</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/components/Navbar.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+I have a clear picture of the registration flow and app structure. Here's my plan:
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="create_plan">
+<details>
+<summary>Tool use: **create_plan**</summary>
+
+
+Parameters:
+
+```json
+{
+  "name": "First-Time User Tutorial",
+  "overview": "Add a multi-step onboarding tutorial that plays only once after a new user registers, walking them through every major feature with animated visuals and smooth transitions before landing on the canvas.",
+  "plan": "# First-Time User Tutorial\n\n## How it works\n\nAfter a successful registration, the app sets a flag in &#96;localStorage&#96; (&#96;lattice_tutorial_pending = true&#96;). On the Home page, if this flag is present, the tutorial overlay renders instead of the normal canvas. When the user finishes (or skips), the flag is removed. Logins never set this flag, so returning users skip the tutorial entirely.\n\n&#96;&#96;&#96;mermaid\nflowchart LR\n    Reg[\"Register.jsx\"] --\u003e|\"sets localStorage flag\"| Nav[\"Navigate to /\"]\n    Nav --\u003e Home[\"Home.jsx\"]\n    Home --\u003e|\"flag present?\"| Tut[\"Tutorial overlay\"]\n    Home --\u003e|\"no flag\"| Canvas[\"Normal canvas\"]\n    Tut --\u003e|\"finish / skip\"| Clear[\"Remove flag\"]\n    Clear --\u003e Canvas\n&#96;&#96;&#96;\n\n## 1. Set the tutorial flag on registration\n\nIn [frontend/src/pages/Register.jsx](frontend/src/pages/Register.jsx), after &#96;await register(email, password)&#96; succeeds (line 45), set the localStorage flag:\n\n&#96;&#96;&#96;js\nlocalStorage.setItem('lattice_tutorial_pending', 'true');\n&#96;&#96;&#96;\n\nNo changes needed in Login.jsx -- logins will never set this flag.\n\n## 2. Create the Tutorial component\n\nNew file: [frontend/src/components/Tutorial.jsx](frontend/src/components/Tutorial.jsx)\n\nA full-screen overlay (&#96;fixed inset-0 z-[300]&#96;) that walks through **8 steps**, one feature per step. Each step consists of:\n\n- A **title** and **description** explaining the feature\n- A **visual illustration** (an inline SVG/graphic or a styled mock element showing the feature in action)\n- **Step indicators** (dots) at the bottom\n- **Back / Next** navigation buttons, plus a **Skip** link\n\n### Tutorial Steps\n\n1. **Welcome to Lattice** -- brief intro: \"Your collaborative document workspace. Let's walk through the key features.\"\n2. **Upload Documents** -- explains PDF, audio, video upload via the floating + button. Show a mock upload button graphic.\n3. **Interactive Canvas** -- drag documents around, lock them in place. Show a mock canvas with document thumbnails.\n4. **Connect Documents** -- link documents with the connect button, add descriptions. Show a mock connection line between two nodes.\n5. **AI Auto-Link** -- select documents and let AI discover connections with strength scores. Show the sparkle icon and mock connection animation.\n6. **Search and Highlights** -- full-text search across PDFs and transcripts, custom colour-coded highlights. Show a mock search bar with highlighted text.\n7. **AI Chat Assistant** -- ask questions about your documents, get cited answers. Show a mock chat bubble.\n8. **Share and Explore** -- publish snapshots, browse other users' canvases. Show a mock gallery card.\n\n### Animations\n\n- Each step **fades and slides in** from the right when advancing, from the left when going back (CSS transitions on a wrapper with &#96;transform: translateX()&#96; + &#96;opacity&#96;).\n- The step indicator dots **pulse** on the active step.\n- Visual illustrations use subtle **float/bob** animations.\n- The final step has a prominent \"Get Started\" button instead of \"Next\".\n\n### Props\n\n- &#96;onComplete: () =\u003e void&#96; -- called when the user finishes or skips\n\n## 3. Wire into Home.jsx\n\nIn [frontend/src/pages/Home.jsx](frontend/src/pages/Home.jsx):\n\n- Add state: &#96;const [showTutorial, setShowTutorial] = useState(() =\u003e localStorage.getItem('lattice_tutorial_pending') === 'true')&#96;\n- Define handler:\n  &#96;&#96;&#96;js\n  const handleTutorialComplete = () =\u003e {\n    localStorage.removeItem('lattice_tutorial_pending');\n    setShowTutorial(false);\n  };\n  &#96;&#96;&#96;\n- Render &#96;{showTutorial \u0026\u0026 \u003cTutorial onComplete={handleTutorialComplete} /\u003e}&#96; at the top of the return, above all other modals\n\n## 4. Add tutorial animations to index.css\n\nIn [frontend/src/index.css](frontend/src/index.css), add keyframes:\n\n- &#96;tutorial-slide-in-right&#96; -- &#96;translateX(40px), opacity 0&#96; to &#96;translateX(0), opacity 1&#96;\n- &#96;tutorial-slide-in-left&#96; -- &#96;translateX(-40px), opacity 0&#96; to &#96;translateX(0), opacity 1&#96;\n- &#96;tutorial-float&#96; -- subtle vertical bob for illustration elements\n- &#96;tutorial-dot-pulse&#96; -- scale pulse for the active step dot\n\n## Files Changed\n\n- [frontend/src/pages/Register.jsx](frontend/src/pages/Register.jsx) -- add &#96;localStorage.setItem&#96; after registration\n- [frontend/src/components/Tutorial.jsx](frontend/src/components/Tutorial.jsx) -- **new** multi-step tutorial overlay\n- [frontend/src/pages/Home.jsx](frontend/src/pages/Home.jsx) -- render tutorial conditionally\n- [frontend/src/index.css](frontend/src/index.css) -- tutorial animation keyframes\n",
+  "todos": [
+    {
+      "content": "Set localStorage tutorial flag in Register.jsx after successful registration",
+      "id": "tutorial-flag",
+      "status": "pending"
+    },
+    {
+      "content": "Create Tutorial.jsx: 8-step full-screen overlay with illustrations, animations, and navigation",
+      "id": "tutorial-component",
+      "status": "pending"
+    },
+    {
+      "content": "Add tutorial animation keyframes to index.css",
+      "id": "tutorial-animations",
+      "status": "pending"
+    },
+    {
+      "content": "Wire Tutorial into Home.jsx with conditional rendering and completion handler",
+      "id": "tutorial-wire",
+      "status": "pending"
+    }
+  ]
+}
+```
+Additional data:
+
+```json
+{
+  "hasOpenedEditor": true,
+  "planId": "first-time_user_tutorial_88e7e9b6",
+  "planUri": "file:///Users/kvg2005/.cursor/plans/first-time_user_tutorial_88e7e9b6.plan.md",
+  "reviewData": {
+    "isShowingInput": false,
+    "selectedOption": "none",
+    "status": "Requested"
+  }
+}
+```
+Result:
+
+```json
+{
+  "rejected": {}
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="create_plan"><details>
+<summary>Tool use: **create_plan**</summary>
+
+</details></tool-use>
+
+---
+
+_**User**_
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write">
+<details>
+<summary>Tool use: **todo_write**</summary>
+
+
+Parameters:
+
+```json
+{
+  "merge": true
+}
+```
+Result:
+
+```json
+{
+  "finalTodos": [
+    {
+      "content": "Set localStorage tutorial flag in Register.jsx after successful registration",
+      "id": "tutorial-flag",
+      "status": "in_progress"
+    },
+    {
+      "content": "Create Tutorial.jsx: 8-step full-screen overlay with illustrations, animations, and navigation",
+      "id": "tutorial-component",
+      "status": "pending"
+    },
+    {
+      "content": "Add tutorial animation keyframes to index.css",
+      "id": "tutorial-animations",
+      "status": "pending"
+    },
+    {
+      "content": "Wire Tutorial into Home.jsx with conditional rendering and completion handler",
+      "id": "tutorial-wire",
+      "status": "pending"
+    }
+  ],
+  "initialTodos": [
+    {
+      "content": "Set localStorage tutorial flag in Register.jsx after successful registration",
+      "id": "tutorial-flag",
+      "status": "pending"
+    },
+    {
+      "content": "Create Tutorial.jsx: 8-step full-screen overlay with illustrations, animations, and navigation",
+      "id": "tutorial-component",
+      "status": "pending"
+    },
+    {
+      "content": "Add tutorial animation keyframes to index.css",
+      "id": "tutorial-animations",
+      "status": "pending"
+    },
+    {
+      "content": "Wire Tutorial into Home.jsx with conditional rendering and completion handler",
+      "id": "tutorial-wire",
+      "status": "pending"
+    }
+  ],
+  "success": true
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="todo_write"><details>
+<summary>Tool use: **todo_write**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Register.jsx</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (claude-4.6-opus-high-thinking)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/kvg2005/Documents/GitHub/Claude-Builders-Hackathon/frontend/src/pages/Register.jsx</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>

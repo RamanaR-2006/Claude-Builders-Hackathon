@@ -11,6 +11,7 @@ import DocSidebar from '../components/DocSidebar';
 import ChatSidebar from '../components/ChatSidebar';
 import ShareModal from '../components/ShareModal';
 import FeedbackModal from '../components/FeedbackModal';
+import Tutorial from '../components/Tutorial';
 import Toast from '../components/Toast';
 
 let toastId = 0;
@@ -38,6 +39,7 @@ export default function Home() {
   const [organizing, setOrganizing] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(() => localStorage.getItem('lattice_tutorial_pending') === 'true');
 
   const [selectMode, setSelectMode] = useState(false);
   const [selectedDocIds, setSelectedDocIds] = useState(new Set());
@@ -280,8 +282,15 @@ export default function Home() {
     setSearchQuery(citation.quote);
   };
 
+  const handleTutorialComplete = () => {
+    localStorage.removeItem('lattice_tutorial_pending');
+    setShowTutorial(false);
+  };
+
   return (
     <div className="h-screen flex flex-col relative">
+      {showTutorial && <Tutorial onComplete={handleTutorialComplete} />}
+
       <Navbar
         onSearch={handleSearch}
         searching={searching}

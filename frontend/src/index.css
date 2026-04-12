@@ -110,3 +110,40 @@ body {
   -webkit-text-fill-color: transparent;
   animation: logo-shimmer 5s linear infinite;
 }
+
+/* Tutorial animations */
+@keyframes tutorial-slide-in-right {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes tutorial-slide-in-left {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes tutorial-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes tutorial-dot-pulse {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.3); }
+}
+
+.animate-tutorial-slide-right {
+  animation: tutorial-slide-in-right 0.4s ease-out forwards;
+}
+
+.animate-tutorial-slide-left {
+  animation: tutorial-slide-in-left 0.4s ease-out forwards;
+}
+
+.animate-tutorial-float {
+  animation: tutorial-float 3s ease-in-out infinite;
+}
+
+.animate-tutorial-dot-pulse {
+  animation: tutorial-dot-pulse 1.5s ease-in-out infinite;
+}
