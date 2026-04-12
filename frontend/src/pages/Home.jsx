@@ -10,6 +10,7 @@ import AutoLinkPanel from '../components/AutoLinkPanel';
 import DocSidebar from '../components/DocSidebar';
 import ChatSidebar from '../components/ChatSidebar';
 import ShareModal from '../components/ShareModal';
+import FeedbackModal from '../components/FeedbackModal';
 import Toast from '../components/Toast';
 
 let toastId = 0;
@@ -36,6 +37,7 @@ export default function Home() {
   const [toasts, setToasts] = useState([]);
   const [organizing, setOrganizing] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const [selectMode, setSelectMode] = useState(false);
   const [selectedDocIds, setSelectedDocIds] = useState(new Set());
@@ -289,6 +291,7 @@ export default function Home() {
         onOrganize={handleOrganize}
         organizing={organizing}
         onShare={() => setShowShareModal(true)}
+        onFeedback={() => setShowFeedback(true)}
       />
 
       {searchResults !== null && (
@@ -391,6 +394,13 @@ export default function Home() {
           docs={docs}
           connections={connections}
           onClose={() => setShowShareModal(false)}
+          onToast={addToast}
+        />
+      )}
+
+      {showFeedback && (
+        <FeedbackModal
+          onClose={() => setShowFeedback(false)}
           onToast={addToast}
         />
       )}
